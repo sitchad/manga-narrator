@@ -1,5 +1,5 @@
 from flask import Flask, render_template_string, send_file, request, redirect
-import pg8000
+import psycopg2
 from gtts import gTTS
 import io
 import os
@@ -10,13 +10,15 @@ app = Flask(__name__)
 DB_PASSWORD = "19902450aA@zZ#"
 
 def get_db_connection():
-    return pg8000.connect(
-        user="postgres.liiyfrmmwqsbsjbnmrwj",  # On utilise l'ID de ton projet ici
+    # Chaîne de connexion standard universelle Supabase
+    return psycopg2.connect(
+        database="postgres",
+        user="postgres",
         password=DB_PASSWORD,
-        host="aws-0-eu-central-1.pooler.supabase.com",  # Le serveur de pooler Supabase
-        port=6543,  # Nouveau port sécurisé
-        database="postgres"
+        host="db.liiyfrmmwqsbsjbnmrwj.supabase.co",
+        port="5432"
     )
+
 def init_db():
     conn = get_db_connection()
     cursor = conn.cursor()
