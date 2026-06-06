@@ -8,7 +8,7 @@ import os
 app = Flask(__name__)
 
 # Ton mot de passe brut
-DB_PASSWORD = "19902450aA@zZ#*"
+DB_PASSWORD = "19902450aA@zZ#"
 
 def get_db_connection():
     # Sécurise le mot de passe pour le pooler
