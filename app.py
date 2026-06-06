@@ -10,13 +10,13 @@ app = Flask(__name__)
 DB_PASSWORD = "19902450aA@zZ#"
 
 def get_db_connection():
-    # Chaîne de connexion standard universelle Supabase
+    # Pooler calé sur l'Irlande (eu-west-1) correspondant à ton projet Supabase
     return psycopg2.connect(
         database="postgres",
-        user="postgres",
+        user="postgres.liiyfrmmwqsbsjbnmrwj",
         password=DB_PASSWORD,
-        host="db.liiyfrmmwqsbsjbnmrwj.supabase.co",
-        port="5432"
+        host="aws-0-eu-west-1.pooler.supabase.com",  # <-- "west-1" au lieu de "central-1"
+        port="6543"
     )
 
 def init_db():
