@@ -3,11 +3,13 @@ def init_db():
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        # 1. On supprime l'ancienne table qui cause l'erreur de colonne manquante
-        print("Suppression de l'ancienne table pages...")
+        # 🔥 ON NETTOIE TOUT : On supprime les anciennes tables pour repartir à zéro
+        print("Nettoyage complet de la base de données...")
         cursor.execute('DROP TABLE IF EXISTS pages CASCADE;')
+        cursor.execute('DROP TABLE IF EXISTS mangas CASCADE;')
         
-        # 2. On recrée la table des mangas (sans y toucher)
+        # 1. Recréation propre de la table des MANGAS
+        print("Création de la table mangas...")
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS mangas (
                 id SERIAL PRIMARY KEY,
@@ -19,8 +21,8 @@ def init_db():
             )
         ''')
         
-        # 3. On crée la nouvelle table pages avec TOUTES les bonnes colonnes
-        print("Création de la nouvelle table pages...")
+        # 2. Recréation propre de la table des PAGES (Cases)
+        print("Création de la table pages...")
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS pages (
                 id SERIAL PRIMARY KEY,
@@ -35,10 +37,9 @@ def init_db():
         conn.commit()
         cursor.close()
         conn.close()
-        print("Base de données mise à jour avec succès sur Supabase !")
+        print("Base de données Supabase entièrement réinitialisée avec succès !")
     except Exception as e:
-        print(f"Erreur d'initialisation : {e}")
-
+        print(f"Erreur critique lors de l'initialisation : {e}")
 
 def get_db_connection():
     return psycopg2.connect(
