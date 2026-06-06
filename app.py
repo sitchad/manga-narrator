@@ -6,53 +6,62 @@ import os
 
 app = Flask(__name__)
 
-# ⚠️ REMPLACE UNIQUEMENT VOTRE_MOT_DE_PASSE PAR LE TIEN
-DB_PASSWORD = "19902450aA@zZ#"
+# ⚠️ TON MOT DE PASSE SUPABASE
+DB_PASSWORD = "19902450aA#zz#"
 
 def get_db_connection():
-    # Pooler calé sur l'Irlande (eu-west-1) correspondant à ton projet Supabase
     return psycopg2.connect(
         database="postgres",
         user="postgres.liiyfrmmwqsbsjbnmrwj",
         password=DB_PASSWORD,
-        host="aws-0-eu-west-1.pooler.supabase.com",  # <-- "west-1" au lieu de "central-1"
+        host="aws-0-eu-west-1.pooler.supabase.com",
         port="6543"
     )
 
 def init_db():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS mangas (
-            id SERIAL PRIMARY KEY,
-            titre TEXT NOT NULL,
-            cover_url TEXT,
-            description TEXT,
-            note TEXT,
-            badge TEXT
-        )
-    ''')
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS pages (
-            id SERIAL PRIMARY KEY,
-            manga_id INTEGER,
-            numero_page INTEGER,
-            image_url TEXT,
-            texte_narration TEXT
-        )
-    ''')
-    conn.commit()
-    cursor.close()
-    conn.close()
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS mangas (
+                id SERIAL PRIMARY KEY,
+                titre TEXT NOT NULL,
+                cover_url TEXT,
+                description TEXT,
+                note TEXT,
+                badge TEXT
+            )
+        ''')
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS pages (
+                id SERIAL PRIMARY KEY,
+                manga_id INTEGER,
+                numero_page INTEGER,
+                image_url TEXT,
+                texte_narration TEXT
+            )
+        ''')
+        conn.commit()
+        cursor.close()
+        conn.close()
+        print("Base de données initialisée avec succès.")
+    except Exception as e:
+        print(f"Erreur lors de l'initialisation (gérée) : {e}")
 
+# Initialisation au démarrage
 init_db()
 
 @app.route('/')
 def home():
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, titre, cover_url, description, note, badge FROM mangas")
-    mangas = cursor.fetchall()
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, titre, cover_url, description, note, badge FROM mangas")
+        mangas = cursor.fetchall()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        return f"Erreur de connexion à la base de données : {e}", 500
     
     mangas_html = ""
     for m in mangas:
@@ -72,8 +81,6 @@ def home():
             </div>
         </div>
         """
-    cursor.close()
-    conn.close()
 
     if not mangas_html:
         mangas_html = "<p style='color: #a1a1aa; grid-column: 1/-1; text-align: center;'>Aucun manga pour le moment. Allez sur <a href='/admin' style='color:#ff4757;'>/admin</a> pour en ajouter !</p>"
@@ -118,12 +125,15 @@ def home():
 
 @app.route('/manga/<int:manga_id>/page/<int:num_page>')
 def lecteur(manga_id, num_page):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT image_url, texte_narration FROM pages WHERE manga_id = %s AND numero_page = %s", (manga_id, num_page))
-    page = cursor.fetchone()
-    cursor.close()
-    conn.close()
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT image_url, texte_narration FROM pages WHERE manga_id = %s AND numero_page = %s", (manga_id, num_page))
+        page = cursor.fetchone()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        return f"Erreur de base de données : {e}", 500
     
     if not page:
         return "<body style='background:#0b0b0c;color:white;text-align:center;padding-top:100px;font-family:sans-serif;'><h1>Fin du Chapitre ! 🎉</h1><br><a href='/' style='color:#ff4757;font-weight:bold;text-decoration:none;font-size:1.2rem;'>Retour à l'accueil</a></body>", 200
@@ -161,12 +171,15 @@ def lecteur(manga_id, num_page):
 
 @app.route('/audio/<int:manga_id>/<int:num_page>')
 def generer_audio(manga_id, num_page):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT texte_narration FROM pages WHERE manga_id = %s AND numero_page = %s", (manga_id, num_page))
-    res = cursor.fetchone()
-    cursor.close()
-    conn.close()
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT texte_narration FROM pages WHERE manga_id = %s AND numero_page = %s", (manga_id, num_page))
+        res = cursor.fetchone()
+        cursor.close()
+        conn.close()
+    except Exception:
+        res = None
     
     texte = res[0] if res else "Fin de l'histoire"
     tts = gTTS(text=texte, lang='fr', slow=False)
@@ -242,6 +255,8 @@ def admin_page():
         
         cursor.execute("INSERT INTO pages (manga_id, numero_page, image_url, texte_narration) VALUES (%s, %s, %s, %s)", (manga_id, num_page, image_url, texte))
         conn.commit()
+        cursor.close()
+        conn.close()
         return redirect('/admin/page')
         
     cursor.execute("SELECT id, titre FROM mangas")
