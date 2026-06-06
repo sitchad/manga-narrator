@@ -1,4 +1,4 @@
-from flask import Flask, render_template_string, send_file, g
+from flask import Flask, render_template_string, send_file, g, request, redirect
 import sqlite3
 import os
 from gtts import gTTS
@@ -18,12 +18,9 @@ def close_db(e):
     if db is not None:
         db.close()
 
-# Nouvelle base de données avec Table MANGAS + Table PAGES
 def init_db():
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    
-    # Table pour la liste des mangas sur la page d'accueil
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS mangas (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -34,8 +31,6 @@ def init_db():
             badge TEXT
         )
     ''')
-    
-    # Table pour les pages de lecture internes
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS pages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -45,36 +40,18 @@ def init_db():
             texte_narration TEXT
         )
     ''')
-    
-    # Remplissage automatique si vide pour le test
-    cursor.execute("SELECT COUNT(*) FROM mangas")
-    if cursor.fetchone()[0] == 0:
-        cursor.executemany('''INSERT INTO mangas (titre, cover_url, description, note, badge) VALUES (?, ?, ?, ?, ?)''', [
-            ("One Piece", "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=500", "Luffy part à l'aventure pour devenir le roi des pirates.", "9.8", "POPULAIRE"),
-            ("Naruto Shuden", "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500", "Le jeune ninja de Konoha cherche à faire reconnaître sa valeur.", "8.5", "NOUVEAU"),
-            ("Demon Slayer", "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=500", "Tanjiro se bat pour sauver sa soeur transformée en démon.", "9.0", "TENDANCE")
-        ])
-        
-        # Pages de lecture pour One Piece (manga_id = 1)
-        cursor.executemany('''INSERT INTO pages (manga_id, numero_page, image_url, texte_narration) VALUES (?, ?, ?, ?)''', [
-            (1, 1, "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=500", "Chapitre 1. Le jeune garçon au chapeau de paille regarde l'océan avec détermination."),
-            (1, 2, "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500", "Soudain, un monstre marin géant surgit des vagues en hurlant !")
-        ])
-        
     conn.commit()
     conn.close()
 
-if not os.path.exists(DB_NAME):
-    init_db()
+init_db()
 
-# 🏠 ROUTE 1 : La page d'accueil style Netflix/Cine (Uniquement Mangas)
+# 🏠 ROUTE 1 : Page d'accueil (Style Netflix)
 @app.route('/')
 def home():
     cursor = get_db().cursor()
     cursor.execute("SELECT id, titre, cover_url, description, note, badge FROM mangas")
     mangas = cursor.fetchall()
     
-    # Construction des cartes de mangas en HTML/CSS
     mangas_html = ""
     for m in mangas:
         m_id, titre, cover, desc, note, badge = m
@@ -94,18 +71,22 @@ def home():
         </div>
         """
 
+    if not mangas_html:
+        mangas_html = "<p style='color: #a1a1aa; grid-column: 1/-1; text-align: center;'>Aucun manga pour le moment. Allez sur <a href='/admin' style='color:#ff4757;'>/admin</a> pour en ajouter !</p>"
+
     html = f"""
     <!DOCTYPE html>
     <html lang="fr">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>MANGA CINE - Accueil</title>
+        <title>MANGA CINE</title>
         <style>
             body {{ background: #0b0b0c; color: white; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; }}
-            header {{ display: flex; align-items: center; border-bottom: 2px solid #ff4757; padding-bottom: 15px; margin-bottom: 30px; }}
-            .logo {{ font-size: 1.8rem; font-weight: bold; color: white; text-transform: uppercase; }}
+            header {{ display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ff4757; padding-bottom: 15px; margin-bottom: 30px; }}
+            .logo {{ font-size: 1.8rem; font-weight: bold; color: white; text-transform: uppercase; text-decoration: none; }}
             .logo span {{ color: #ff4757; }}
+            .nav-admin {{ background: #27272a; color: white; text-decoration: none; padding: 8px 15px; border-radius: 5px; font-size: 0.9rem; font-weight: bold; }}
             h2 {{ color: #ffffff; border-left: 4px solid #ff4757; padding-left: 10px; font-size: 1.4rem; text-transform: uppercase; }}
             .grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; margin-top: 20px; }}
             .card {{ background: #18181b; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.6); display: flex; flex-direction: column; transition: transform 0.2s; }}
@@ -118,24 +99,21 @@ def home():
             .card-footer {{ display: flex; justify-content: space-between; align-items: center; }}
             .rating {{ color: #ffb81c; font-weight: bold; font-size: 0.9rem; }}
             .btn-play {{ background: #ff4757; color: white; text-decoration: none; padding: 6px 12px; font-size: 0.85rem; border-radius: 4px; font-weight: bold; }}
-            .btn-play:hover {{ background: #ff6b81; }}
         </style>
     </head>
     <body>
         <header>
-            <div class="logo">Manga<span>Cine</span></div>
+            <a href="/" class="logo">Manga<span>Cine</span></a>
+            <a href="/admin" class="nav-admin">Panneau Admin ⚙️</a>
         </header>
-        
         <h2>📚 Tous les Mangas</h2>
-        <div class="grid">
-            {mangas_html}
-        </div>
+        <div class="grid">{mangas_html}</div>
     </body>
     </html>
     """
     return render_template_string(html)
 
-# 📖 ROUTE 2 : Le lecteur audio interne pour chaque manga
+# 📖 ROUTE 2 : Le Lecteur de pages de Manga
 @app.route('/manga/<int:manga_id>/page/<int:num_page>')
 def lecteur(manga_id, num_page):
     cursor = get_db().cursor()
@@ -143,24 +121,23 @@ def lecteur(manga_id, num_page):
     page = cursor.fetchone()
     
     if not page:
-        return "<body style='background:#0b0b0c;color:white;text-align:center;padding-top:100px;font-family:sans-serif;'><h1>Fin du Chapitre ! 🎉</h1><br><a href='/' style='color:#ff4757;font-weight:bold;text-decoration:none;'>Retour à l'accueil</a></body>", 200
+        return "<body style='background:#0b0b0c;color:white;text-align:center;padding-top:100px;font-family:sans-serif;'><h1>Fin du Chapitre ! 🎉</h1><br><a href='/' style='color:#ff4757;font-weight:bold;text-decoration:none;font-size:1.2rem;'>Retour à l'accueil</a></body>", 200
 
     image_url, texte = page
-
-    html = f"""
+    return render_template_string(f"""
     <!DOCTYPE html>
-    <html lang="fr">
+    <html>
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Lecture Manga</title>
+        <title>Lecture</title>
         <style>
-            body {{ background: #0b0b0c; color: white; font-family: Arial, sans-serif; text-align: center; padding: 20px; margin: 0; }}
-            .player-container {{ max-width: 500px; margin: 20px auto; background: #18181b; padding: 20px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.8); }}
+            body {{ background: #0b0b0c; color: white; font-family: Arial, sans-serif; text-align: center; padding: 20px; margin:0; }}
+            .player-container {{ max-width: 500px; margin: 10px auto; background: #18181b; padding: 20px; border-radius: 10px; }}
             .manga-img {{ width: 100%; border-radius: 6px; }}
-            .text {{ font-size: 1.1rem; color: #e4e4e7; margin: 20px 0; min-height: 40px; }}
-            .btn {{ background: #ff4757; color: white; text-decoration: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; display: inline-block; margin-top: 10px; }}
-            audio {{ width: 100%; margin-top: 15px; background: #27272a; border-radius: 4px; }}
+            .text {{ font-size: 1.1rem; color: #e4e4e7; margin: 20px 0; }}
+            .btn {{ background: #ff4757; color: white; text-decoration: none; padding: 12px 24px; border-radius: 5px; font-weight: bold; display: inline-block; }}
+            audio {{ width: 100%; margin-top: 15px; }}
         </style>
     </head>
     <body>
@@ -173,22 +150,127 @@ def lecteur(manga_id, num_page):
         </div>
     </body>
     </html>
-    """
-    return render_template_string(html)
+    """, image_url=image_url, texte=texte, manga_id=manga_id, num_page=num_page)
 
-# 🎙️ ROUTE 3 : Génération de la voix Google
+# 🎙️ ROUTE 3 : Générateur Audio (gTTS)
 @app.route('/audio/<int:manga_id>/<int:num_page>')
 def generer_audio(manga_id, num_page):
     cursor = get_db().cursor()
     cursor.execute("SELECT texte_narration FROM pages WHERE manga_id = ? AND numero_page = ?", (manga_id, num_page))
     res = cursor.fetchone()
     texte = res[0] if res else "Fin de l'histoire"
-    
     tts = gTTS(text=texte, lang='fr', slow=False)
     audio_fp = io.BytesIO()
     tts.write_to_fp(audio_fp)
     audio_fp.seek(0)
     return send_file(audio_fp, mimetype="audio/mp3")
+
+# ⚙️ ROUTE 4 : Admin - Ajouter un Manga
+@app.route('/admin', methods=['GET', 'POST'])
+def admin_manga():
+    if request.method == 'POST':
+        titre = request.form['titre']
+        cover = request.form['cover']
+        desc = request.form['desc']
+        note = request.form['note']
+        badge = request.form['badge']
+        
+        db = get_db()
+        cursor = db.cursor()
+        cursor.execute("INSERT INTO mangas (titre, cover_url, description, note, badge) VALUES (?, ?, ?, ?, ?)", (titre, cover, desc, note, badge))
+        db.commit()
+        return redirect('/admin')
+        
+    html = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Admin - Mangas</title>
+        <style>
+            body {{ background: #0b0b0c; color: white; font-family: Arial, sans-serif; padding: 20px; max-width: 500px; margin: 0 auto; }}
+            nav {{ margin-bottom: 20px; }}
+            nav a {{ color: #ff4757; margin-right: 15px; font-weight: bold; text-decoration: none; }}
+            form {{ background: #18181b; padding: 20px; border-radius: 8px; }}
+            input, textarea, select {{ width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #27272a; background: #0b0b0c; color: white; box-sizing: border-box; }}
+            button {{ background: #ff4757; color: white; border: none; padding: 12px; width: 100%; border-radius: 4px; font-weight: bold; cursor: pointer; }}
+        </style>
+    </head>
+    <body>
+        <nav><a href="/">⬅️ Retour au site</a> | <a href="/admin/page">Ajouter des pages ➡️</a></nav>
+        <h2>➕ Ajouter un nouveau Manga</h2>
+        <form method="POST">
+            <label>Titre du Manga :</label><input type="text" name="titre" required placeholder="Ex: One Piece">
+            <label>Lien URL de la Couverture :</label><input type="url" name="cover" required placeholder="https://...">
+            <label>Résumé / Description :</label><textarea name="desc" rows="3" required placeholder="Court résumé..."></textarea>
+            <label>Note (sur 10) :</label><input type="text" name="note" required placeholder="Ex: 9.5">
+            <label>Badge :</label>
+            <select name="badge">
+                <option value="POPULAIRE">Populaire</option>
+                <option value="TENDANCE">Tendance</option>
+                <option value="NOUVEAU">Nouveau</option>
+            </select>
+            <button type="submit">Enregistrer le Manga</button>
+        </form>
+    </body>
+    </html>
+    """
+    return render_template_string(html)
+
+# ⚙️ ROUTE 5 : Admin - Ajouter des Pages de Lecture
+@app.route('/admin/page', methods=['GET', 'POST'])
+def admin_page():
+    db = get_db()
+    cursor = db.cursor()
+    
+    if request.method == 'POST':
+        manga_id = request.form['manga_id']
+        num_page = request.form['num_page']
+        image_url = request.form['image_url']
+        texte = request.form['texte']
+        
+        cursor.execute("INSERT INTO pages (manga_id, numero_page, image_url, texte_narration) VALUES (?, ?, ?, ?)", (manga_id, num_page, image_url, texte))
+        db.commit()
+        return redirect('/admin/page')
+        
+    cursor.execute("SELECT id, titre FROM mangas")
+    mangas = cursor.fetchall()
+    options = "".join([f"<option value='{m[0]}'>{m[1]}</option>" for m in mangas])
+
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Admin - Pages</title>
+        <style>
+            body {{ background: #0b0b0c; color: white; font-family: Arial, sans-serif; padding: 20px; max-width: 500px; margin: 0 auto; }}
+            nav {{ margin-bottom: 20px; }}
+            nav a {{ color: #ff4757; margin-right: 15px; font-weight: bold; text-decoration: none; }}
+            form {{ background: #18181b; padding: 20px; border-radius: 8px; }}
+            input, textarea, select {{ width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #27272a; background: #0b0b0c; color: white; box-sizing: border-box; }}
+            button {{ background: #ff4757; color: white; border: none; padding: 12px; width: 100%; border-radius: 4px; font-weight: bold; cursor: pointer; }}
+        </style>
+    </head>
+    <body>
+        <nav><a href="/admin">⬅️ Ajouter un Manga</a> | <a href="/">Aller sur le site ➡️</a></nav>
+        <h2>📖 Ajouter une Page à un Manga</h2>
+        <form method="POST">
+            <label>Choisir le Manga :</label>
+            <select name="manga_id" required>
+                {options}
+            </select>
+            <label>Numéro de la page :</label><input type="number" name="num_page" required placeholder="Ex: 1">
+            <label>Lien URL de l'image (Planche du manga) :</label><input type="url" name="image_url" required placeholder="https://...">
+            <label>Texte de la narration (Ce qui sera lu) :</label><textarea name="texte" rows="4" required placeholder="Écris ce que le narrateur doit dire pour cette page..."></textarea>
+            <button type="submit">Enregistrer la Page</button>
+        </form>
+    </body>
+    </html>
+    """
+    return render_template_string(html)
 
 if __name__ == '__main__':
     app.run(debug=True)
