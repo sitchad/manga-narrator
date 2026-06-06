@@ -7,7 +7,7 @@ import os
 app = Flask(__name__)
 
 # ⚠️ TON MOT DE PASSE SUPABASE
-DB_PASSWORD = "19902450aA#zz#"
+DB_PASSWORD = "19902450aA@zZ#"
 
 def get_db_connection():
     return psycopg2.connect(
