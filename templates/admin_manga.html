@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><title>Admin - Ajouter Mangas</title></head>
+<body style="background: #0b0b0c; color: white; font-family: sans-serif; padding: 20px; max-width: 500px; margin: 0 auto;">
+    <nav style="margin-bottom: 25px;"><a href="/" style="color: #ff4757; text-decoration: none; font-weight: bold;">🏠 Accueil</a> | <a href="/admin/page" style="color: #ff4757; text-decoration: none; font-weight: bold; margin-left: 10px;">📖 Gérer les Pages →</a></nav>
+    <h2>➕ Ajouter un Manga</h2>
+    <form method="POST" style="background: #18181b; padding: 20px; border-radius: 8px; display: flex; flex-direction: column;">
+        <input type="text" name="titre" placeholder="Titre du Manga" required style="padding: 10px; margin-bottom: 10px; background: #0b0b0c; color: white; border: 1px solid #27272a; border-radius: 4px;">
+        <input type="url" name="cover" placeholder="URL Image Couverture" required style="padding: 10px; margin-bottom: 10px; background: #0b0b0c; color: white; border: 1px solid #27272a; border-radius: 4px;">
+        <textarea name="desc" placeholder="Résumé / Description" rows="3" required style="padding: 10px; margin-bottom: 10px; background: #0b0b0c; color: white; border: 1px solid #27272a; border-radius: 4px;"></textarea>
+        <input type="text" name="note" placeholder="Note (ex: 9.2)" required style="padding: 10px; margin-bottom: 10px; background: #0b0b0c; color: white; border: 1px solid #27272a; border-radius: 4px;">
+        <select name="badge" style="padding: 10px; margin-bottom: 15px; background: #0b0b0c; color: white; border: 1px solid #27272a; border-radius: 4px;">
+            <option value="POPULAIRE">Populaire</option>
+            <option value="TENDANCE">Tendance</option>
+            <option value="NOUVEAU">Nouveau</option>
+        </select>
+        <button type="submit" style="background: #ff4757; color: white; border: none; padding: 12px; font-weight: bold; border-radius: 4px; cursor: pointer;">Enregistrer le Manga</button>
+    </form>
+</body>
+</html>

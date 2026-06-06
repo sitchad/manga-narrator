@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><title>Lecture en cours</title></head>
+<body style="background: #0b0b0c; color: white; font-family: sans-serif; text-align: center; padding: 20px;">
+    <div style="max-width: 500px; margin: 0 auto; background: #18181b; padding: 20px; border-radius: 10px;">
+        <img src="{{ image_url }}" style="width: 100%; border-radius: 6px;">
+        <p style="font-size: 1.2rem; margin: 20px 0;">"{{ texte }}"</p>
+        <audio id="mangaAudio" autoplay controls src="/audio/{{ manga_id }}/{{ num_page }}" style="width: 100%;"></audio>
+        <br><br>
+        <a href="/manga/{{ manga_id }}/page/{{ num_page + 1 }}" style="background: #ff4757; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Page Suivante ➡️</a>
+    </div>
+    <script>
+        var audio = document.getElementById('mangaAudio');
+        audio.onended = function() {
+            window.location.href = "/manga/{{ manga_id }}/page/{{ num_page + 1 }}";
+        };
+    </script>
+</body>
+</html>

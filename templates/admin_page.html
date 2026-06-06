@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><title>Admin - Ajouter Pages</title></head>
+<body style="background: #0b0b0c; color: white; font-family: sans-serif; padding: 20px; max-width: 500px; margin: 0 auto;">
+    <nav style="margin-bottom: 25px;"><a href="/admin" style="color: #ff4757; text-decoration: none; font-weight: bold;">← Revenir aux Mangas</a></nav>
+    <h2>📖 Ajouter une Page / Chapitre</h2>
+    <form method="POST" style="background: #18181b; padding: 20px; border-radius: 8px; display: flex; flex-direction: column;">
+        <label style="margin-bottom: 5px; font-size: 0.9rem; color: #a1a1aa;">Choisir le Manga :</label>
+        <select name="manga_id" required style="padding: 10px; margin-bottom: 15px; background: #0b0b0c; color: white; border: 1px solid #27272a; border-radius: 4px;">
+            {% for m in mangas %}
+            <option value="{{ m[0] }}">{{ m[1] }}</option>
+            {% endfor %}
+        </select>
+        
+        <input type="number" name="num_page" placeholder="Numéro de la page (ex: 1)" required style="padding: 10px; margin-bottom: 15px; background: #0b0b0c; color: white; border: 1px solid #27272a; border-radius: 4px;">
+        <input type="url" name="image_url" placeholder="URL de l'image de la page" required style="padding: 10px; margin-bottom: 15px; background: #0b0b0c; color: white; border: 1px solid #27272a; border-radius: 4px;">
+        <textarea name="texte_narration" placeholder="Texte de la narration (lu par la voix off)" rows="4" required style="padding: 10px; margin-bottom: 15px; background: #0b0b0c; color: white; border: 1px solid #27272a; border-radius: 4px;"></textarea>
+        
+        <button type="submit" style="background: #ff4757; color: white; border: none; padding: 12px; font-weight: bold; border-radius: 4px; cursor: pointer;">Enregistrer la Page</button>
+    </form>
+</body>
+</html>
