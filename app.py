@@ -1,21 +1,24 @@
 from flask import Flask, render_template_string, send_file, request, redirect
 import psycopg2
+import urllib.parse
 from gtts import gTTS
 import io
 import os
 
 app = Flask(__name__)
 
+# Ton mot de passe brut
 DB_PASSWORD = "19902450aA@zZ#*"
 
 def get_db_connection():
-    # Utilisation directe de l'IPv4 pour contourner le blocage IPv6 de Render
+    # Sécurise le mot de passe pour le pooler
+    safe_password = urllib.parse.quote_plus(DB_PASSWORD)
     return psycopg2.connect(
         database="postgres",
-        user="postgres",
-        password=DB_PASSWORD,
-        host="34.241.16.247",
-        port="5432"
+        user="postgres.liiyfrmmwqsbsjbnmrwj",
+        password=safe_password,
+        host="aws-0-eu-west-1.pooler.supabase.com",
+        port="6543"
     )
 
 def init_db():
