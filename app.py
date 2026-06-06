@@ -6,7 +6,7 @@ import io
 app = Flask(__name__)
 
 # ⚠️ REMPLACE CETTE ADRESSE PAR TON VRAI LIEN SUPABASE MAIS EN REMPLAÇANT "postgresql://" PAR "postgresql+psycopg2://"
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql+pg8000:[19902450aA@zZ#]@db.liiyfrmmwqsbsjbnmrwj.supabase.co:5432/postgres"
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql+pg8000:19902450aA@zZ#@db.liiyfrmmwqsbsjbnmrwj.supabase.co:5432/postgres"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
