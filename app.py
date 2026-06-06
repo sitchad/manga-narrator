@@ -1,22 +1,21 @@
 from flask import Flask, render_template_string, send_file, request, redirect, session
 import psycopg2
-import urllib.parse
 from gtts import gTTS
 import io
 
 app = Flask(__name__)
-# Clé secrète obligatoire pour gérer les sessions de connexion
+# Clé secrète indispensable pour que Flask puisse mémoriser ta session Admin
 app.secret_key = "manga_cine_secret_key_2026"
 
-# Mot de passe pour ton accès Admin (tu peux le modifier ici)
+# Ton mot de passe pour te connecter à l'espace Admin
 ADMIN_PASSWORD = "AdminCine2026!"
 
 def get_db_connection():
-    safe_password = urllib.parse.quote_plus("19902450aA@zZ#")
+    # Reprise exacte de ta configuration d'origine qui fonctionne très bien
     return psycopg2.connect(
         database="postgres",
         user="postgres.liiyfrmmwqsbsjbnmrwj",
-        password=safe_password,
+        password="19902450aA@zZ#",
         host="aws-0-eu-west-1.pooler.supabase.com",
         port="6543"
     )
@@ -83,7 +82,7 @@ def home():
     if not mangas_html:
         mangas_html = "<p style='color: #a1a1aa; text-align: center;'>Aucun manga disponible.</p>"
 
-    # On affiche le bouton Admin et Logout UNIQUEMENT si tu es connecté en session
+    # Le bouton Admin s'affiche uniquement si TOI tu es connecté
     admin_btn = ""
     if session.get('is_admin'):
         admin_btn = """
@@ -114,7 +113,7 @@ def home():
     """
     return render_template_string(html)
 
-# --- SYSTÈME DE CONNEXION ---
+# --- ESPACE DE CONNEXION ADMIN ---
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -151,11 +150,10 @@ def logout():
     session.pop('is_admin', None)
     return redirect('/')
 
-# --- PANNEAU ADMIN SÉCURISÉ ---
+# --- PANNEAU DE CONFIGURATION PROTEGÉ ---
 
 @app.route('/admin', methods=['GET', 'POST'])
 def admin_manga():
-    # Sécurité : Si pas connecté, redirection forcée vers le login
     if not session.get('is_admin'):
         return redirect('/login')
 
@@ -200,7 +198,6 @@ def admin_manga():
 
 @app.route('/admin/page', methods=['GET', 'POST'])
 def admin_page():
-    # Sécurité : Si pas connecté, redirection forcée
     if not session.get('is_admin'):
         return redirect('/login')
 
@@ -263,6 +260,7 @@ def lecteur(manga_id, num_page):
         return "<body style='background:#0b0b0c;color:white;text-align:center;padding-top:100px;'><h1>Fin du Chapitre ! 🎉</h1><br><a href='/' style='color:#ff4757; font-weight:bold; text-decoration:none;'>Retour à l'accueil</a></body>", 200
 
     image_url, texte = page
+    # Doublage des accolades {{}} pour transmettre les variables au JavaScript sans casser le f-string Python
     html = f"""
     <!DOCTYPE html>
     <html>
@@ -276,11 +274,10 @@ def lecteur(manga_id, num_page):
             <a href="/manga/{manga_id}/page/{num_page + 1}" style="background: #ff4757; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Page Suivante ➡️</a>
         </div>
         <script>
-            // Rythme guidé par la narration : passe automatiquement à la page suivante quand l'audio se termine
             var audio = document.getElementById('mangaAudio');
-            audio.onended = function() {
+            audio.onended = function() {{
                 window.location.href = "/manga/" + {manga_id} + "/page/" + ({num_page} + 1);
-            };
+            }};
         </script>
     </body>
     </html>
