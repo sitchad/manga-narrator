@@ -10,13 +10,12 @@ app = Flask(__name__)
 DB_PASSWORD = "19902450aA@zZ#*"
 
 def get_db_connection():
-    safe_password = urllib.parse.quote_plus(DB_PASSWORD)
     return psycopg2.connect(
         database="postgres",
-        user="postgres.liiyfrmmwqsbsjbnmrwj",
-        password=safe_password,
-        host="aws-0-eu-west-1.pooler.supabase.com",
-        port="5432"
+        user="postgres",
+        password="19902450aA#zz#*",
+        host="db.liiyfrmmwqsbsjbnmrwj.supabase.co",  # <-- L'adresse directe officielle
+        port="5432"                                  # <-- Le port direct standard
     )
 
 def init_db():
