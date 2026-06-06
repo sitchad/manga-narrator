@@ -1,20 +1,16 @@
 from flask import Flask, render_template_string, send_file, request, redirect
 import psycopg2
-import urllib.parse
 from gtts import gTTS
 import io
 
 app = Flask(__name__)
 
-# Configuration de la base de données sécurisée
-DB_PASSWORD = "19902450aA@zZ#"
-
 def get_db_connection():
-    safe_password = urllib.parse.quote_plus(DB_PASSWORD)
+    # Configuration explicite par paramètres pour éviter les conflits de caractères spéciaux
     return psycopg2.connect(
         database="postgres",
         user="postgres.liiyfrmmwqsbsjbnmrwj",
-        password=safe_password,
+        password="19902450aA@zZ#",
         host="aws-0-eu-west-1.pooler.supabase.com",
         port="6543"
     )
@@ -45,7 +41,7 @@ def init_db():
         conn.commit()
         cursor.close()
         conn.close()
-        print("Base de données initialisée.")
+        print("Base de données initialisée avec succès.")
     except Exception as e:
         print(f"Erreur d'initialisation : {e}")
 
@@ -67,23 +63,19 @@ def home():
     for m in mangas:
         m_id, titre, cover, desc, note, badge = m
         mangas_html += f"""
-        <div class="card">
-            <div class="cover-container" style="background-image: url('{cover}');">
-                <span class="badge">{badge}</span>
-            </div>
-            <div class="card-body">
-                <h3>{titre}</h3>
-                <p>{desc}</p>
-                <div class="card-footer">
-                    <span class="rating">⭐ {note}</span>
-                    <a href="/manga/{m_id}/page/1" class="btn-play">Lire 🎙️</a>
-                </div>
+        <div class="card" style="background: #18181b; border-radius: 8px; padding: 15px; margin: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+            <img src="{cover}" style="width: 100%; height: 250px; object-fit: cover; border-radius: 6px;">
+            <h3>{titre}</h3>
+            <p style="color: #a1a1aa; font-size: 0.9rem;">{desc}</p>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: #ffb81c;">⭐ {note} ({badge})</span>
+                <a href="/manga/{m_id}/page/1" style="background: #ff4757; color: white; padding: 8px 12px; text-decoration: none; border-radius: 4px; font-weight: bold;">Lire 🎙️</a>
             </div>
         </div>
         """
 
     if not mangas_html:
-        mangas_html = "<p style='color: #a1a1aa; grid-column: 1/-1; text-align: center;'>Aucun manga pour le moment. Allez sur <a href='/admin' style='color:#ff4757;'>/admin</a> pour en ajouter !</p>"
+        mangas_html = "<p style='color: #a1a1aa; text-align: center;'>Aucun manga disponible. <a href='/admin' style='color:#ff4757;'>Ajouter ici</a></p>"
 
     html = f"""
     <!DOCTYPE html>
@@ -91,30 +83,16 @@ def home():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>MANGA CINE</title>
-        <style>
-            body {{ background: #0b0b0c; color: white; font-family: sans-serif; margin: 0; padding: 20px; }}
-            header {{ display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ff4757; padding-bottom: 15px; margin-bottom: 30px; }}
-            .logo {{ font-size: 1.8rem; font-weight: bold; color: white; text-decoration: none; }}
-            .logo span {{ color: #ff4757; }}
-            .nav-admin {{ background: #27272a; color: white; text-decoration: none; padding: 8px 15px; border-radius: 5px; font-size: 0.9rem; }}
-            .grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; margin-top: 20px; }}
-            .card {{ background: #18181b; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; }}
-            .cover-container {{ height: 280px; background-size: cover; background-position: center; position: relative; }}
-            .badge {{ position: absolute; bottom: 10px; left: 10px; background: #ff4757; color: white; font-size: 0.75rem; padding: 4px 8px; border-radius: 4px; }}
-            .card-body {{ padding: 15px; display: flex; flex-direction: column; flex-grow: 1; }}
-            .card-body h3 {{ margin: 0 0 8px 0; }}
-            .card-body p {{ margin: 0 0 15px 0; color: #a1a1aa; font-size: 0.85rem; flex-grow: 1; }}
-            .card-footer {{ display: flex; justify-content: space-between; align-items: center; }}
-            .btn-play {{ background: #ff4757; color: white; text-decoration: none; padding: 6px 12px; border-radius: 4px; }}
-        </style>
+        <title>Manga Cine</title>
     </head>
-    <body>
-        <header>
-            <a href="/" class="logo">Manga<span>Cine</span></a>
-            <a href="/admin" class="nav-admin">Panneau Admin ⚙️</a>
-        </header>
-        <div class="grid">{mangas_html}</div>
+    <body style="background: #0b0b0c; color: white; font-family: sans-serif; padding: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ff4757; padding-bottom: 10px;">
+            <h1>Manga<span style="color: #ff4757;">Cine</span></h1>
+            <a href="/admin" style="background: #27272a; color: white; padding: 8px 15px; text-decoration: none; border-radius: 5px;">Admin ⚙️</a>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; margin-top: 20px;">
+            {mangas_html}
+        </div>
     </body>
     </html>
     """
@@ -139,26 +117,14 @@ def lecteur(manga_id, num_page):
     html = f"""
     <!DOCTYPE html>
     <html>
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Lecture</title>
-        <style>
-            body {{ background: #0b0b0c; color: white; font-family: sans-serif; text-align: center; padding: 20px; }}
-            .player-container {{ max-width: 500px; margin: 10px auto; background: #18181b; padding: 20px; border-radius: 10px; }}
-            .manga-img {{ width: 100%; border-radius: 6px; }}
-            .text {{ font-size: 1.1rem; color: #e4e4e7; margin: 20px 0; }}
-            .btn {{ background: #ff4757; color: white; text-decoration: none; padding: 12px 24px; border-radius: 5px; display: inline-block; }}
-            audio {{ width: 100%; margin-top: 15px; }}
-        </style>
-    </head>
-    <body>
-        <div class="player-container">
-            <img class="manga-img" src="{image_url}">
-            <p class="text">"{texte}"</p>
-            <audio autoplay controls src="/audio/{manga_id}/{num_page}"></audio>
+    <head><meta charset="UTF-8"><title>Lecture</title></head>
+    <body style="background: #0b0b0c; color: white; font-family: sans-serif; text-align: center; padding: 20px;">
+        <div style="max-width: 500px; margin: 0 auto; background: #18181b; padding: 20px; border-radius: 10px;">
+            <img src="{image_url}" style="width: 100%; border-radius: 6px;">
+            <p style="font-size: 1.2rem; margin: 20px 0;">"{texte}"</p>
+            <audio autoplay controls src="/audio/{manga_id}/{num_page}" style="width: 100%;"></audio>
             <br><br>
-            <a class="btn" href="/manga/{manga_id}/page/{num_page + 1}">Page Suivante ➡️</a>
+            <a href="/manga/{manga_id}/page/{num_page + 1}" style="background: #ff4757; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">Page Suivante ➡️</a>
         </div>
     </body>
     </html>
@@ -204,30 +170,22 @@ def admin_manga():
     html = """
     <!DOCTYPE html>
     <html>
-    <head>
-        <meta charset="UTF-8">
-        <title>Admin - Mangas</title>
-        <style>
-            body {{ background: #0b0b0c; color: white; font-family: sans-serif; padding: 20px; max-width: 500px; margin: 0 auto; }}
-            form {{ background: #18181b; padding: 20px; border-radius: 8px; }}
-            input, textarea, select {{ width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 4px; border: 1px solid #27272a; background: #0b0b0c; color: white; box-sizing: border-box; }}
-            button {{ background: #ff4757; color: white; border: none; padding: 12px; width: 100%; border-radius: 4px; font-weight: bold; }}
-        </style>
-    </head>
-    <body>
-        <form method="POST">
-            <h2>➕ Ajouter un Manga</h2>
-            <input type="text" name="titre" placeholder="Titre" required>
-            <input type="url" name="cover" placeholder="URL Couverture" required>
-            <textarea name="desc" placeholder="Description" rows="3" required></textarea>
-            <input type="text" name="note" placeholder="Note (ex: 8.5)" required>
-            <select name="badge">
+    <head><meta charset="UTF-8"><title>Admin</title></head>
+    <body style="background: #0b0b0c; color: white; font-family: sans-serif; padding: 20px; max-width: 500px; margin: 0 auto;">
+        <h2>➕ Ajouter un Manga</h2>
+        <form method="POST" style="background: #18181b; padding: 20px; border-radius: 8px; display: flex; flex-direction: column;">
+            <input type="text" name="titre" placeholder="Titre du Manga" required style="padding: 10px; margin-bottom: 10px; background: #0b0b0c; color: white; border: 1px solid #27272a; border-radius: 4px;">
+            <input type="url" name="cover" placeholder="URL Image Couverture" required style="padding: 10px; margin-bottom: 10px; background: #0b0b0c; color: white; border: 1px solid #27272a; border-radius: 4px;">
+            <textarea name="desc" placeholder="Résumé / Description" rows="3" required style="padding: 10px; margin-bottom: 10px; background: #0b0b0c; color: white; border: 1px solid #27272a; border-radius: 4px;"></textarea>
+            <input type="text" name="note" placeholder="Note (ex: 9.2)" required style="padding: 10px; margin-bottom: 10px; background: #0b0b0c; color: white; border: 1px solid #27272a; border-radius: 4px;">
+            <select name="badge" style="padding: 10px; margin-bottom: 15px; background: #0b0b0c; color: white; border: 1px solid #27272a; border-radius: 4px;">
                 <option value="POPULAIRE">Populaire</option>
                 <option value="TENDANCE">Tendance</option>
                 <option value="NOUVEAU">Nouveau</option>
             </select>
-            <button type="submit">Enregistrer</button>
+            <button type="submit" style="background: #ff4757; color: white; border: none; padding: 12px; font-weight: bold; border-radius: 4px;">Enregistrer</button>
         </form>
+        <br><a href="/" style="color: #ff4757; text-decoration: none;">⬅️ Retour au site</a>
     </body>
     </html>
     """
