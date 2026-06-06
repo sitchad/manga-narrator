@@ -1,4 +1,5 @@
 import psycopg2
+
 def get_db_connection():
     return psycopg2.connect(
         database="postgres",
@@ -7,12 +8,13 @@ def get_db_connection():
         host="aws-0-eu-west-1.pooler.supabase.com",
         port="6543"
     )
-import psycopg2
 
 def init_db():
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
+        
+        # Table des Mangas
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS mangas (
                 id SERIAL PRIMARY KEY,
@@ -23,15 +25,19 @@ def init_db():
                 badge TEXT
             )
         ''')
+        
+        # Table des Cases (reliée au Chapitre)
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS pages (
                 id SERIAL PRIMARY KEY,
                 manga_id INTEGER,
+                num_chapitre INTEGER,
                 numero_page INTEGER,
                 image_url TEXT,
                 texte_narration TEXT
             )
         ''')
+        
         conn.commit()
         cursor.close()
         conn.close()

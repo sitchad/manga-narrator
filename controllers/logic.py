@@ -25,30 +25,36 @@ def insert_manga(titre, cover, desc, note, badge):
     cursor.close()
     conn.close()
 
-def insert_page(manga_id, num_page, image_url, texte_narration):
+def insert_page(manga_id, num_chapitre, num_case, image_url, texte_narration):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute(
-        "INSERT INTO pages (manga_id, numero_page, image_url, texte_narration) VALUES (%s, %s, %s, %s)",
-        (manga_id, num_page, image_url, texte_narration)
+        "INSERT INTO pages (manga_id, num_chapitre, numero_page, image_url, texte_narration) VALUES (%s, %s, %s, %s, %s)",
+        (manga_id, num_chapitre, num_case, image_url, texte_narration)
     )
     conn.commit()
     cursor.close()
     conn.close()
 
-def fetch_manga_page(manga_id, num_page):
+def fetch_manga_page(manga_id, num_chapitre, num_case):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT image_url, texte_narration FROM pages WHERE manga_id = %s AND numero_page = %s", (manga_id, num_page))
+    cursor.execute(
+        "SELECT image_url, texte_narration FROM pages WHERE manga_id = %s AND num_chapitre = %s AND numero_page = %s", 
+        (manga_id, num_chapitre, num_case)
+    )
     page = cursor.fetchone()
     cursor.close()
     conn.close()
     return page
 
-def create_audio_stream(manga_id, num_page):
+def create_audio_stream(manga_id, num_chapitre, num_case):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT texte_narration FROM pages WHERE manga_id = %s AND numero_page = %s", (manga_id, num_page))
+    cursor.execute(
+        "SELECT texte_narration FROM pages WHERE manga_id = %s AND num_chapitre = %s AND numero_page = %s", 
+        (manga_id, num_chapitre, num_case)
+    )
     res = cursor.fetchone()
     cursor.close()
     conn.close()

@@ -1,12 +1,12 @@
 from flask import Flask, render_template, send_file, request, redirect, session
 from models.db import init_db
-import controllers.logic as controller
 
 app = Flask(__name__)
 app.secret_key = "manga_cine_secret_key_2026"
 ADMIN_PASSWORD = "AdminCine2026!"
 
-# Initialisation automatique au lancement
+import controllers.logic as controller
+
 init_db()
 
 @app.route('/')
@@ -47,24 +47,33 @@ def admin_page():
         return redirect('/login')
     if request.method == 'POST':
         controller.insert_page(
-            request.form['manga_id'], request.form['num_page'],
-            request.form['image_url'], request.form['texte_narration']
+            request.form['manga_id'], 
+            request.form['num_chapitre'],
+            request.form['num_case'], 
+            request.form['image_url'], 
+            request.form['texte_narration']
         )
         return redirect('/admin/page')
     mangas = controller.fetch_all_mangas()
     return render_template('admin_page.html', mangas=mangas)
 
-@app.route('/manga/<int:manga_id>/page/<int:num_page>')
-def lecteur(manga_id, num_page):
-    page = controller.fetch_manga_page(manga_id, num_page)
-    if not page:
-        return render_template('error.html', message="Fin du Chapitre ! 🎉")
-    return render_template('lecteur.html', image_url=page[0], texte=page[1], manga_id=manga_id, num_page=num_page)
+@app.route('/manga/<int:manga_id>/chapitre/<int:num_chapitre>/case/<int:num_case>')
+def lecteur(manga_id, num_chapitre, num_case):
+    try:
+        page = controller.fetch_manga_page(manga_id, num_chapitre, num_case)
+        if not page:
+            return render_template('error.html', message="Fin du Chapitre ! 🎉")
+        return render_template('lecteur.html', image_url=page[0], texte=page[1], manga_id=manga_id, num_chapitre=num_chapitre, num_case=num_case)
+    except Exception as e:
+        return render_template('error.html', message=f"Erreur lecteur : {str(e)}")
 
-@app.route('/audio/<int:manga_id>/<int:num_page>')
-def generer_audio(manga_id, num_page):
-    audio_stream = controller.create_audio_stream(manga_id, num_page)
-    return send_file(audio_stream, mimetype="audio/mp3")
+@app.route('/audio/<int:manga_id>/<int:num_chapitre>/<int:num_case>')
+def generer_audio(manga_id, num_chapitre, num_case):
+    try:
+        audio_stream = controller.create_audio_stream(manga_id, num_chapitre, num_case)
+        return send_file(audio_stream, mimetype="audio/mp3")
+    except Exception as e:
+        return f"Erreur Audio : {str(e)}", 500
 
 if __name__ == '__main__':
     app.run(debug=True)
