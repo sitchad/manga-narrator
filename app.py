@@ -1,6 +1,5 @@
 from flask import Flask, render_template_string, send_file, request, redirect
 import psycopg2
-import urllib.parse
 from gtts import gTTS
 import io
 import os
@@ -13,13 +12,12 @@ def get_db_connection():
     return psycopg2.connect(
         database="postgres",
         user="postgres",
-        password="19902450aA#zz#*",
-        host="db.liiyfrmmwqsbsjbnmrwj.supabase.co",  # <-- L'adresse directe officielle
-        port="5432"                                  # <-- Le port direct standard
+        password=DB_PASSWORD,
+        host="db.liiyfrmmwqsbsjbnmrwj.supabase.co",
+        port="5432"
     )
 
 def init_db():
-    """Crée les tables si elles n'existent pas, sans bloquer le démarrage"""
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -45,16 +43,15 @@ def init_db():
         conn.commit()
         cursor.close()
         conn.close()
-        return True
+        print("Base de données initialisée avec succès.")
     except Exception as e:
         print(f"Erreur d'initialisation : {e}")
-        return False
+
+# Initialisation au démarrage (Fonctionne parfaitement sur le port 5432)
+init_db()
 
 @app.route('/')
 def home():
-    # Initialisation à la volée lors de la première requête pour éviter les rejets du pooler
-    init_db()
-    
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -253,9 +250,9 @@ def admin_page():
         manga_id = request.form['manga_id']
         num_page = request.form['num_page']
         image_url = request.form['image_url']
-        texte = request.form['texte']
+        texte_narration = request.form['texte_narration']  # <-- Modifié pour correspondre au formulaire html
         
-        cursor.execute("INSERT INTO pages (manga_id, numero_page, image_url, texte_narration) VALUES (%s, %s, %s, %s)", (manga_id, num_page, image_url, texte))
+        cursor.execute("INSERT INTO pages (manga_id, numero_page, image_url, texte_narration) VALUES (%s, %s, %s, %s)", (manga_id, num_page, image_url, texte_narration))
         conn.commit()
         cursor.close()
         conn.close()
@@ -291,8 +288,7 @@ def admin_page():
             <select name="manga_id" required>{options}</select>
             <label>Numéro de la page :</label><input type="number" name="num_page" required>
             <label>Lien URL de l'image :</label><input type="url" name="image_url" required>
-            <label>Texte de la narration :</label><textarea name="texte" rows="4" required></textarea>
-            <button type="submit">Enregistrer la Page</button>
+            <label>Texte de la narration :</label><textarea name="texte_narration" rows="4" required></textarea>  <button type="submit">Enregistrer la Page</button>
         </form>
     </body>
     </html>
