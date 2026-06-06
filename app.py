@@ -1,14 +1,9 @@
 from flask import Flask, render_template
-from controllers.logic import get_mangas
-
-app = Flask(__name__)
-
+# ...
 @app.route('/')
 def home():
-    # Récupère la liste depuis ton contrôleur
-    mangas = get_mangas()
-    # Envoie les données vers le HTML
-    return render_template('index.html', mangas=mangas)
-
-if __name__ == '__main__':
-    app.run()
+    try:
+        mangas = get_mangas()
+        return render_template('index.html', mangas=mangas)
+    except Exception as e:
+        return f"Erreur critique : {str(e)}" # Cela affichera l'erreur sur ton site au lieu de 500
