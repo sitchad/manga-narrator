@@ -1,24 +1,26 @@
 from flask import Flask, render_template_string, send_file, request, redirect
 import psycopg2
+import urllib.parse
 from gtts import gTTS
 import io
 import os
 
 app = Flask(__name__)
 
-# ⚠️ TON MOT DE PASSE SUPABASE
-DB_PASSWORD = "19902450aA@zZ#"
+DB_PASSWORD = "19902450aA@zZ#*"
 
 def get_db_connection():
+    safe_password = urllib.parse.quote_plus(DB_PASSWORD)
     return psycopg2.connect(
         database="postgres",
         user="postgres.liiyfrmmwqsbsjbnmrwj",
-        password=DB_PASSWORD,
+        password=safe_password,
         host="aws-0-eu-west-1.pooler.supabase.com",
         port="6543"
     )
 
 def init_db():
+    """Crée les tables si elles n'existent pas, sans bloquer le démarrage"""
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -44,15 +46,16 @@ def init_db():
         conn.commit()
         cursor.close()
         conn.close()
-        print("Base de données initialisée avec succès.")
+        return True
     except Exception as e:
-        print(f"Erreur lors de l'initialisation (gérée) : {e}")
-
-# Initialisation au démarrage
-init_db()
+        print(f"Erreur d'initialisation : {e}")
+        return False
 
 @app.route('/')
 def home():
+    # Initialisation à la volée lors de la première requête pour éviter les rejets du pooler
+    init_db()
+    
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
