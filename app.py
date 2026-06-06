@@ -1,58 +1,80 @@
-from flask import Flask, render_template_string, request, redirect, send_file
-from flask_sqlalchemy import SQLAlchemy
+from flask import Flask, render_template_string, send_file, request, redirect
+import pg8000
 from gtts import gTTS
 import io
+import os
 
 app = Flask(__name__)
 
-# ⚠️ REMPLACE CETTE ADRESSE PAR TON VRAI LIEN SUPABASE MAIS EN REMPLAÇANT "postgresql://" PAR "postgresql+psycopg2://"
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql+pg8000:19902450aA@zZ#@db.liiyfrmmwqsbsjbnmrwj.supabase.co:5432/postgres"
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# ⚠️ REMPLACE UNIQUEMENT VOTRE_MOT_DE_PASSE PAR LE TIEN (GARDER LES GUILLEMETS)
+DB_PASSWORD = "19902450aA@zZ#"
 
-db = SQLAlchemy(app)
+def get_db_connection():
+    # Connexion directe avec pg8000 (sans URL complexe qui bug)
+    return pg8000.connect(
+        user="postgres",
+        password=DB_PASSWORD,
+        host="db.liiyfrmmwqsbsjbnmrwj.supabase.co",
+        port=5432,
+        database="postgres"
+    )
 
-# 🗂️ MODÈLES DE BASE DE DONNÉES
-class Manga(db.Model):
-    __tablename__ = 'mangas'
-    id = db.Column(db.Integer, primary_key=True)
-    titre = db.Column(db.String(200), nullable=False)
-    cover_url = db.Column(db.Text)
-    description = db.Column(db.Text)
-    note = db.Column(db.String(50))
-    badge = db.Column(db.String(50))
+def init_db():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS mangas (
+            id SERIAL PRIMARY KEY,
+            titre TEXT NOT NULL,
+            cover_url TEXT,
+            description TEXT,
+            note TEXT,
+            badge TEXT
+        )
+    ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS pages (
+            id SERIAL PRIMARY KEY,
+            manga_id INTEGER,
+            numero_page INTEGER,
+            image_url TEXT,
+            texte_narration TEXT
+        )
+    ''')
+    conn.commit()
+    cursor.close()
+    conn.close()
 
-class Page(db.Model):
-    __tablename__ = 'pages'
-    id = db.Column(db.Integer, primary_key=True)
-    manga_id = db.Column(db.Integer)
-    numero_page = db.Column(db.Integer)
-    image_url = db.Column(db.Text)
-    texte_narration = db.Column(db.Text)
+init_db()
 
-with app.app_context():
-    db.create_all()
-
-# 🏠 ACCUEIL STYLE NETFLIX
 @app.route('/')
 def home():
-    mangas = Manga.query.all()
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, titre, cover_url, description, note, badge FROM mangas")
+    mangas = cursor.fetchall()
+    
     mangas_html = ""
     for m in mangas:
+        m_id, titre, cover, desc, note, badge = m
         mangas_html += f"""
         <div class="card">
-            <div class="cover-container" style="background-image: url('{m.cover_url}');">
-                <span class="badge">{m.badge}</span>
+            <div class="cover-container" style="background-image: url('{cover}');">
+                <span class="badge">{badge}</span>
             </div>
             <div class="card-body">
-                <h3>{m.titre}</h3>
-                <p>{m.description}</p>
+                <h3>{titre}</h3>
+                <p>{desc}</p>
                 <div class="card-footer">
-                    <span class="rating">⭐ {m.note}</span>
-                    <a href="/manga/{m.id}/page/1" class="btn-play">Lire 🎙️</a>
+                    <span class="rating">⭐ {note}</span>
+                    <a href="/manga/{m_id}/page/1" class="btn-play">Lire 🎙️</a>
                 </div>
             </div>
         </div>
         """
+    cursor.close()
+    conn.close()
+
     if not mangas_html:
         mangas_html = "<p style='color: #a1a1aa; grid-column: 1/-1; text-align: center;'>Aucun manga pour le moment. Allez sur <a href='/admin' style='color:#ff4757;'>/admin</a> pour en ajouter !</p>"
 
@@ -94,13 +116,20 @@ def home():
     """
     return render_template_string(html)
 
-# 📖 LECTEUR DE PAGE
 @app.route('/manga/<int:manga_id>/page/<int:num_page>')
 def lecteur(manga_id, num_page):
-    page = Page.query.filter_by(manga_id=manga_id, numero_page=num_page).first()
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT image_url, texte_narration FROM pages WHERE manga_id = %s AND numero_page = %s", (manga_id, num_page))
+    page = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    
     if not page:
         return "<body style='background:#0b0b0c;color:white;text-align:center;padding-top:100px;font-family:sans-serif;'><h1>Fin du Chapitre ! 🎉</h1><br><a href='/' style='color:#ff4757;font-weight:bold;text-decoration:none;font-size:1.2rem;'>Retour à l'accueil</a></body>", 200
 
+    image_url, texte = page
+    
     html = f"""
     <!DOCTYPE html>
     <html>
@@ -119,8 +148,8 @@ def lecteur(manga_id, num_page):
     </head>
     <body>
         <div class="player-container">
-            <img class="manga-img" src="{page.image_url}">
-            <p class="text">"{page.texte_narration}"</p>
+            <img class="manga-img" src="{image_url}">
+            <p class="text">"{texte}"</p>
             <audio autoplay controls src="/audio/{manga_id}/{num_page}"></audio>
             <br><br>
             <a class="btn" href="/manga/{manga_id}/page/{num_page + 1}">Page Suivante ➡️</a>
@@ -130,30 +159,37 @@ def lecteur(manga_id, num_page):
     """
     return render_template_string(html)
 
-# 🎙️ AUDIO
 @app.route('/audio/<int:manga_id>/<int:num_page>')
 def generer_audio(manga_id, num_page):
-    page = Page.query.filter_by(manga_id=manga_id, numero_page=num_page).first()
-    texte = page.texte_narration if page else "Fin de l'histoire"
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT texte_narration FROM pages WHERE manga_id = %s AND numero_page = %s", (manga_id, num_page))
+    res = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    
+    texte = res[0] if res else "Fin de l'histoire"
     tts = gTTS(text=texte, lang='fr', slow=False)
     audio_fp = io.BytesIO()
     tts.write_to_fp(audio_fp)
     audio_fp.seek(0)
     return send_file(audio_fp, mimetype="audio/mp3")
 
-# ⚙️ ADMIN MANGA
 @app.route('/admin', methods=['GET', 'POST'])
 def admin_manga():
     if request.method == 'POST':
-        nouveau_manga = Manga(
-            titre=request.form['titre'],
-            cover_url=request.form['cover'],
-            description=request.form['desc'],
-            note=request.form['note'],
-            badge=request.form['badge']
-        )
-        db.session.add(nouveau_manga)
-        db.session.commit()
+        titre = request.form['titre']
+        cover = request.form['cover']
+        desc = request.form['desc']
+        note = request.form['note']
+        badge = request.form['badge']
+        
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO mangas (titre, cover_url, description, note, badge) VALUES (%s, %s, %s, %s, %s)", (titre, cover, desc, note, badge))
+        conn.commit()
+        cursor.close()
+        conn.close()
         return redirect('/admin')
         
     html = """
@@ -193,22 +229,26 @@ def admin_manga():
     """
     return render_template_string(html)
 
-# ⚙️ ADMIN PAGE
 @app.route('/admin/page', methods=['GET', 'POST'])
 def admin_page():
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
     if request.method == 'POST':
-        nouvelle_page = Page(
-            manga_id=int(request.form['manga_id']),
-            numero_page=int(request.form['num_page']),
-            image_url=request.form['image_url'],
-            texte_narration=request.form['texte']
-        )
-        db.session.add(nouvelle_page)
-        db.session.commit()
+        manga_id = request.form['manga_id']
+        num_page = request.form['num_page']
+        image_url = request.form['image_url']
+        texte = request.form['texte']
+        
+        cursor.execute("INSERT INTO pages (manga_id, numero_page, image_url, text_narration) VALUES (%s, %s, %s, %s)", (manga_id, num_page, image_url, texte))
+        conn.commit()
         return redirect('/admin/page')
         
-    mangas = Manga.query.all()
-    options = "".join([f"<option value='{m.id}'>{m.titre}</option>" for m in mangas])
+    cursor.execute("SELECT id, titre FROM mangas")
+    mangas = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    options = "".join([f"<option value='{m[0]}'>{m[1]}</option>" for m in mangas])
 
     html = f"""
     <!DOCTYPE html>
