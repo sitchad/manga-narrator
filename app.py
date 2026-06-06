@@ -16,7 +16,7 @@ def get_db_connection():
         user="postgres.liiyfrmmwqsbsjbnmrwj",
         password=safe_password,
         host="aws-0-eu-west-1.pooler.supabase.com",
-        port="6543"
+        port="5432"
     )
 
 def init_db():
