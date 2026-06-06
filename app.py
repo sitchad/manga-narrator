@@ -11,13 +11,12 @@ DB_PASSWORD = "19902450aA@zZ#"
 
 def get_db_connection():
     return pg8000.connect(
-        user="postgres",
+        user="postgres.liiyfrmmwqsbsjbnmrwj",  # On utilise l'ID de ton projet ici
         password=DB_PASSWORD,
-        host="db.liiyfrmmwqsbsjbnmrwj.supabase.co",
-        port=5432,
+        host="aws-0-eu-central-1.pooler.supabase.com",  # Le serveur de pooler Supabase
+        port=6543,  # Nouveau port sécurisé
         database="postgres"
     )
-
 def init_db():
     conn = get_db_connection()
     cursor = conn.cursor()
