@@ -9,11 +9,12 @@ app = Flask(__name__)
 DB_PASSWORD = "19902450aA@zZ#*"
 
 def get_db_connection():
+    # Utilisation directe de l'IPv4 pour contourner le blocage IPv6 de Render
     return psycopg2.connect(
         database="postgres",
         user="postgres",
         password=DB_PASSWORD,
-        host="db.liiyfrmmwqsbsjbnmrwj.supabase.co",
+        host="34.241.16.247",
         port="5432"
     )
 
@@ -47,7 +48,7 @@ def init_db():
     except Exception as e:
         print(f"Erreur d'initialisation : {e}")
 
-# Initialisation au démarrage (Fonctionne parfaitement sur le port 5432)
+# Initialisation au démarrage
 init_db()
 
 @app.route('/')
@@ -250,7 +251,7 @@ def admin_page():
         manga_id = request.form['manga_id']
         num_page = request.form['num_page']
         image_url = request.form['image_url']
-        texte_narration = request.form['texte_narration']  # <-- Modifié pour correspondre au formulaire html
+        texte_narration = request.form['texte_narration']
         
         cursor.execute("INSERT INTO pages (manga_id, numero_page, image_url, texte_narration) VALUES (%s, %s, %s, %s)", (manga_id, num_page, image_url, texte_narration))
         conn.commit()
@@ -288,7 +289,8 @@ def admin_page():
             <select name="manga_id" required>{options}</select>
             <label>Numéro de la page :</label><input type="number" name="num_page" required>
             <label>Lien URL de l'image :</label><input type="url" name="image_url" required>
-            <label>Texte de la narration :</label><textarea name="texte_narration" rows="4" required></textarea>  <button type="submit">Enregistrer la Page</button>
+            <label>Texte de la narration :</label><textarea name="texte_narration" rows="4" required></textarea>
+            <button type="submit">Enregistrer la Page</button>
         </form>
     </body>
     </html>
