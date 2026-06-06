@@ -113,7 +113,7 @@ def home():
     """
     return render_template_string(html)
 
-# 📖 ROUTE 2 : Le Lecteur de pages de Manga
+# 📖 ROUTE 2 : Le Lecteur de pages de Manga (CORRIGÉ)
 @app.route('/manga/<int:manga_id>/page/<int:num_page>')
 def lecteur(manga_id, num_page):
     cursor = get_db().cursor()
@@ -123,8 +123,10 @@ def lecteur(manga_id, num_page):
     if not page:
         return "<body style='background:#0b0b0c;color:white;text-align:center;padding-top:100px;font-family:sans-serif;'><h1>Fin du Chapitre ! 🎉</h1><br><a href='/' style='color:#ff4757;font-weight:bold;text-decoration:none;font-size:1.2rem;'>Retour à l'accueil</a></body>", 200
 
-    image_url, texte = page
-    return render_template_string(f"""
+    image_url = page[0]
+    texte = page[1]
+    
+    html = f"""
     <!DOCTYPE html>
     <html>
     <head>
@@ -150,7 +152,8 @@ def lecteur(manga_id, num_page):
         </div>
     </body>
     </html>
-    """, image_url=image_url, texte=texte, manga_id=manga_id, num_page=num_page)
+    """
+    return render_template_string(html)
 
 # 🎙️ ROUTE 3 : Générateur Audio (gTTS)
 @app.route('/audio/<int:manga_id>/<int:num_page>')
