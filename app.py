@@ -6,11 +6,10 @@ import os
 
 app = Flask(__name__)
 
-# ⚠️ REMPLACE UNIQUEMENT VOTRE_MOT_DE_PASSE PAR LE TIEN (GARDER LES GUILLEMETS)
+# ⚠️ REMPLACE UNIQUEMENT VOTRE_MOT_DE_PASSE PAR LE TIEN
 DB_PASSWORD = "19902450aA@zZ#"
 
 def get_db_connection():
-    # Connexion directe avec pg8000 (sans URL complexe qui bug)
     return pg8000.connect(
         user="postgres",
         password=DB_PASSWORD,
@@ -240,7 +239,7 @@ def admin_page():
         image_url = request.form['image_url']
         texte = request.form['texte']
         
-        cursor.execute("INSERT INTO pages (manga_id, numero_page, image_url, text_narration) VALUES (%s, %s, %s, %s)", (manga_id, num_page, image_url, texte))
+        cursor.execute("INSERT INTO pages (manga_id, numero_page, image_url, texte_narration) VALUES (%s, %s, %s, %s)", (manga_id, num_page, image_url, texte))
         conn.commit()
         return redirect('/admin/page')
         
