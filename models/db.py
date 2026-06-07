@@ -41,7 +41,7 @@ def init_db():
             );
         ''')
 
-        # Table des votes
+        # Table des votes pour les clients
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS votes (
                 id SERIAL PRIMARY KEY,
@@ -53,7 +53,7 @@ def init_db():
 
         conn.commit()
         cursor.close()
-        print("Structure de la base de données vérifiée et validée !")
+        print("Base de données initialisée sans perte de données !")
     except Exception as e:
         print(f"Erreur d'initialisation : {e}")
         if conn:
