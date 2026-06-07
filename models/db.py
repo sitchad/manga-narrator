@@ -17,7 +17,7 @@ def init_db():
 
         cursor.execute("SET statement_timeout = 30000;")
 
-        # Table des mangas (Pas de DROP TABLE, conservation des données)
+        # Table des mangas
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS mangas (
                 id SERIAL PRIMARY KEY,
@@ -41,7 +41,7 @@ def init_db():
             );
         ''')
 
-        # Table des votes pour le système de notation des clients
+        # Table des votes
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS votes (
                 id SERIAL PRIMARY KEY,
@@ -53,9 +53,9 @@ def init_db():
 
         conn.commit()
         cursor.close()
-        print("Backend : Structure Supabase vérifiée et opérationnelle !")
+        print("Structure de la base de données vérifiée et validée !")
     except Exception as e:
-        print(f"Erreur d'initialisation de la base : {e}")
+        print(f"Erreur d'initialisation : {e}")
         if conn:
             conn.rollback()
     finally:

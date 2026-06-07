@@ -48,7 +48,6 @@ def lire_page_manga(manga_id, num_chapitre, numero_page):
     if not page_actuelle:
         cursor.close()
         conn.close()
-        # Correction ici pour envoyer les bonnes variables à la fin du chapitre
         return render_template("fin_chapitre.html", manga_id=manga_id, num_chapitre=num_chapitre)
 
     cursor.execute("""
@@ -63,8 +62,6 @@ def lire_page_manga(manga_id, num_chapitre, numero_page):
     return render_template("reader.html", 
                            manga_id=manga_id, num_chapitre=num_chapitre, numero_page=numero_page,
                            image_url=page_actuelle[0], narration=page_actuelle[1], a_un_suivant=a_un_suivant)
-
-# --- LOGIQUE DE L'ADMINISTRATION ---
 
 def ajouter_nouveau_manga():
     titre = request.form.get('titre')
@@ -105,8 +102,6 @@ def ajouter_cases_chapitre():
     conn.close()
     return redirect('/admin')
 
-# --- LOGIQUE DU VOTE CLIENT ---
-
 def voter_pour_manga():
     manga_id = request.form.get('manga_id')
     note_client = request.form.get('note_valeur')
@@ -128,7 +123,6 @@ def voter_pour_manga():
         moyenne_brute = cursor.fetchone()[0]
         nouvelle_moyenne = round(moyenne_brute, 1) if moyenne_brute else 0.0
 
-        # Correction de la variable ici (nouvelle_moyenne au lieu de nouenne_moyenne)
         cursor.execute("UPDATE mangas SET note = %s WHERE id = %s;", (nouvelle_moyenne, manga_id))
         conn.commit()
     except Exception as e:
