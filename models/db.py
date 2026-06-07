@@ -72,6 +72,15 @@ def db_get_chapitre_numero(chapitre_id):
     conn.close()
     return row[0] if row else None
 
+def db_get_max_chapitre_numero(manga_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT MAX(numero) FROM chapitres WHERE manga_id = %s;", (manga_id,))
+    row = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    return row[0] if row[0] is not None else 0
+
 def db_insert_chapitre(manga_id, numero, titre, couverture_chapitre_url):
     conn = get_db_connection()
     cursor = conn.cursor()

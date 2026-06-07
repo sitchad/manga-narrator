@@ -3,7 +3,8 @@ from models.db import init_db
 from controllers.logic import (
     liste_tous_les_mangas, afficher_manga, lire_page_manga, charger_panel_admin,
     ajouter_nouveau_manga, ajouter_nouveau_chapitre, ajouter_cases_chapitre,
-    supprimer_manga_action, supprimer_chapitre_action, vider_cases_action
+    supprimer_manga_action, supprimer_chapitre_action, vider_cases_action,
+    api_prochain_chapitre_numero
 )
 
 app = Flask(__name__)
@@ -30,6 +31,10 @@ def manga_reader(manga_id, chapitre_id, numero_page):
 @app.route('/admin')
 def admin_panel():
     return charger_panel_admin()
+
+@app.route('/admin/api/prochain-chapitre/<int:manga_id>')
+def admin_api_next_chap(manga_id):
+    return api_prochain_chapitre_numero(manga_id)
 
 @app.route('/admin/ajouter-manga', methods=['POST'])
 def admin_add_manga():

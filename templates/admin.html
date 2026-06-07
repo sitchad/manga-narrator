@@ -24,17 +24,17 @@
         </div>
 
         <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-xl space-y-3">
-            <h2 class="font-bold text-xs text-amber-400 uppercase tracking-wide">2. Ajouter un Chapitre (Sélection Liste Déroulante)</h2>
+            <h2 class="font-bold text-xs text-amber-400 uppercase tracking-wide">2. Ajouter un Chapitre (Calcul de Numéro Auto)</h2>
             <form action="/admin/ajouter-chapitre" method="POST" class="space-y-3">
                 <div class="grid grid-cols-2 gap-3">
-                    <select name="manga_id" required class="bg-black p-2 text-xs rounded border border-zinc-800 focus:outline-none focus:border-amber-500 w-full text-zinc-300">
+                    <select id="select-manga-chap" name="manga_id" required class="bg-black p-2 text-xs rounded border border-zinc-800 focus:outline-none focus:border-amber-500 w-full text-zinc-300">
                         <option value="" disabled selected>Choisir un Manga...</option>
                         {% for m in mangas %}
                         <option value="{{ m[0] }}">{{ m[1] }}</option>
                         {% endfor %}
                     </select>
                     
-                    <input type="number" name="numero" placeholder="Numéro Chapitre" required class="bg-black p-2 text-xs rounded border border-zinc-800 focus:outline-none focus:border-amber-500 w-full">
+                    <input id="input-numero-chap" type="number" name="numero" placeholder="Numéro Chapitre" required class="bg-black p-2 text-xs rounded border border-zinc-800 focus:outline-none focus:border-amber-500 w-full">
                 </div>
                 <input type="text" name="titre" placeholder="Titre du Chapitre" required class="bg-black p-2 text-xs rounded border border-zinc-800 focus:outline-none focus:border-amber-500 w-full">
                 <input type="url" name="couverture_chapitre_url" placeholder="URL Image Couverture du Chapitre" required class="bg-black p-2 text-xs rounded border border-zinc-800 focus:outline-none focus:border-amber-500 w-full">
@@ -90,5 +90,27 @@
             </div>
         </div>
     </div>
+
+    <script>
+        const selectManga = document.getElementById('select-manga-chap');
+        const inputNumero = document.getElementById('input-numero-chap');
+
+        selectManga.addEventListener('change', function() {
+            const mangaId = this.value;
+            if (!mangaId) return;
+
+            inputNumero.placeholder = "Calcul en cours...";
+            
+            fetch(`/admin/api/prochain-chapitre/${mangaId}`)
+                .then(response => response.json())
+                .then(data => {
+                    inputNumero.value = data.prochain_numero;
+                })
+                .catch(err => {
+                    console.error("Erreur de récupération du numéro de chapitre:", err);
+                    inputNumero.placeholder = "Numéro Chapitre";
+                });
+        });
+    </script>
 </body>
 </html>

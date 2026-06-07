@@ -1,9 +1,10 @@
-from flask import render_template, abort, request, redirect
+from flask import render_template, abort, request, redirect, jsonify
 from models.db import (
     db_get_all_mangas, db_get_manga_by_id, db_insert_manga,
     db_get_chapitres_by_manga, db_get_chapitre_numero, db_insert_chapitre,
     db_get_page, db_check_next_page, db_insert_page,
-    db_delete_manga, db_delete_chapitre, db_delete_cases_by_chapitre
+    db_delete_manga, db_delete_chapitre, db_delete_cases_by_chapitre,
+    db_get_max_chapitre_numero
 )
 
 # --- CLIENT ---
@@ -48,6 +49,10 @@ def charger_panel_admin():
                 'titre': c[2]
             })
     return render_template('admin.html', mangas=mangas, chapitres=tous_les_chapitres)
+
+def api_prochain_chapitre_numero(manga_id):
+    max_num = db_get_max_chapitre_numero(manga_id)
+    return jsonify({"prochain_numero": max_num + 1})
 
 def ajouter_nouveau_manga():
     nom = request.form.get('nom')
