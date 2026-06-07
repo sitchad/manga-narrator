@@ -2,19 +2,45 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Manga Narrator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ma Bibliothèque Manga</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; background-color: #f4f4f4; }
-        .manga-card { background: white; padding: 15px; margin-bottom: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        h1 { color: #333; }
+        body { background-color: #121212; color: #ffffff; font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { border-bottom: 2px solid #ff4757; padding-bottom: 10px; color: #fff; }
+        .manga-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; margin-top: 25px; }
+        .manga-card { background: #1e1e1e; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.5); border: 1px solid #2f3542; text-decoration: none; color: white; transition: transform 0.2s; display: flex; flex-direction: column; }
+        .manga-card:hover { transform: scale(1.03); border-color: #ff4757; }
+        .cover-wrapper { position: relative; width: 100%; pt: 140%; /* Ratio affiche */ height: 250px; background: #2f3542; }
+        .cover-img { width: 100%; height: 100%; object-fit: cover; }
+        .badge { position: absolute; top: 10px; right: 10px; background: #ff4757; color: white; padding: 4px 8px; font-size: 11px; font-weight: bold; border-radius: 4px; }
+        .manga-info { padding: 12px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .manga-title { font-size: 16px; font-weight: bold; margin: 0 0 8px 0; color: #fff; }
+        .manga-meta { display: flex; justify-content: space-between; font-size: 13px; color: #a4b0be; }
     </style>
 </head>
 <body>
-    <h1>Ma Bibliothèque Manga</h1>
-    {% for manga in mangas %}
-        <div class="manga-card">
-            <h3>{{ manga[1] }}</h3> <img src="{{ manga[2] }}" width="100" alt="Cover">
+    <div class="container">
+        <h1>📚 Ma Bibliothèque Manga</h1>
+        
+        <div class="manga-grid">
+            {% for manga in mangas %}
+                <a href="/manga/{{ manga[0] }}" class="manga-card">
+                    <div class="cover-wrapper">
+                        <img src="{{ manga[2] if manga[2] else 'https://via.placeholder.com/180x250' }}" class="cover-img" alt="{{ manga[1] }}">
+                        {% if manga[5] %}
+                            <span class="badge">{{ manga[5] }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="manga-info">
+                        <div class="manga-title">{{ manga[1] }}</div>
+                        <div class="manga-meta">
+                            <span>⭐ {{ manga[4] if manga[4] else '0.0' }}/10</span>
+                        </div>
+                    </div>
+                </a>
+            {% endfor %}
         </div>
-    {% endfor %}
+    </div>
 </body>
 </html>
