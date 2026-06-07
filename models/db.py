@@ -17,9 +17,7 @@ def init_db():
 
         cursor.execute("SET statement_timeout = 30000;")
 
-        # ON ENLÈVE LES DROP TABLE POUR NE PLUS RIEN SUPPRIMER !
-
-        # Création de la table mangas (SEULEMENT SI ELLE N'EXISTE PAS)
+        # Sauvegarde des données : Pas de DROP TABLE !
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS mangas (
                 id SERIAL PRIMARY KEY,
@@ -31,7 +29,6 @@ def init_db():
             );
         ''')
 
-        # Création de la table pages (SEULEMENT SI ELLE N'EXISTE PAS)
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS pages (
                 id SERIAL PRIMARY KEY,
@@ -45,7 +42,7 @@ def init_db():
 
         conn.commit()
         cursor.close()
-        print("Base de données vérifiée : les tables existantes ont été conservées !")
+        print("Backend : Base de données vérifiée et opérationnelle !")
     except Exception as e:
         print(f"Erreur d'initialisation de la base : {e}")
         if conn:
