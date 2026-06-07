@@ -1,45 +1,4 @@
-def init_db():
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        
-        # 🔥 ON NETTOIE TOUT : On supprime les anciennes tables pour repartir à zéro
-        print("Nettoyage complet de la base de données...")
-        cursor.execute('DROP TABLE IF EXISTS pages CASCADE;')
-        cursor.execute('DROP TABLE IF EXISTS mangas CASCADE;')
-        
-        # 1. Recréation propre de la table des MANGAS
-        print("Création de la table mangas...")
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS mangas (
-                id SERIAL PRIMARY KEY,
-                titre TEXT NOT NULL,
-                cover_url TEXT,
-                description TEXT,
-                note TEXT,
-                badge TEXT
-            )
-        ''')
-        
-        # 2. Recréation propre de la table des PAGES (Cases)
-        print("Création de la table pages...")
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS pages (
-                id SERIAL PRIMARY KEY,
-                manga_id INTEGER,
-                num_chapitre INTEGER,
-                numero_page INTEGER,
-                image_url TEXT,
-                texte_narration TEXT
-            )
-        ''')
-        
-        conn.commit()
-        cursor.close()
-        conn.close()
-        print("Base de données Supabase entièrement réinitialisée avec succès !")
-    except Exception as e:
-        print(f"Erreur critique lors de l'initialisation : {e}")
+import psycopg2
 
 def get_db_connection():
     return psycopg2.connect(
@@ -51,37 +10,49 @@ def get_db_connection():
     )
 
 def init_db():
+    conn = None
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        # Table des Mangas
+        # Désactiver les verrous pour éviter que ça bloque si une ancienne requête tourne encore
+        cursor.execute("SET statement_timeout = 30000;")
+        
+        # 1. Suppression propre des anciennes tables
+        cursor.execute("DROP TABLE IF EXISTS pages CASCADE;")
+        cursor.execute("DROP TABLE IF EXISTS mangas CASCADE;")
+        
+        # 2. Création de la table mangas
         cursor.execute('''
-            CREATE TABLE IF NOT EXISTS mangas (
+            CREATE TABLE mangas (
                 id SERIAL PRIMARY KEY,
                 titre TEXT NOT NULL,
                 cover_url TEXT,
                 description TEXT,
                 note TEXT,
                 badge TEXT
-            )
+            );
         ''')
         
-        # Table des Cases (reliée au Chapitre)
+        # 3. Création de la table pages (avec num_chapitre et numero_page)
         cursor.execute('''
-            CREATE TABLE IF NOT EXISTS pages (
+            CREATE TABLE pages (
                 id SERIAL PRIMARY KEY,
                 manga_id INTEGER,
                 num_chapitre INTEGER,
                 numero_page INTEGER,
                 image_url TEXT,
                 texte_narration TEXT
-            )
+            );
         ''')
         
         conn.commit()
         cursor.close()
-        conn.close()
-        print("Base de données initialisée avec succès.")
+        print("Supabase a bien été nettoyé et recréé à neuf !")
     except Exception as e:
-        print(f"Erreur d'initialisation : {e}")
+        print(f"Erreur d'initialisation de la base : {e}")
+        if conn:
+            conn.rollback()
+    finally:
+        if conn:
+            conn.close()
