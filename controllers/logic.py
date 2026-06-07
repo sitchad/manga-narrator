@@ -1,6 +1,5 @@
 import io
-import asyncio
-import edge_tts
+from google.cloud import texttospeech
 from models.db import get_db_connection
 
 def fetch_all_mangas():
@@ -59,7 +58,7 @@ def fetch_manga_page(manga_id, num_chapitre, num_case):
         print(f"Erreur récupération case : {e}")
         return None
 
-# 🔥 FONCTION AUDIO SÉCURISÉE ET CORRIGÉE
+# 🔥 NOUVELLE FONCTION AUDIO PREMIUM SYNCHRONE (ZÉRO BUG)
 def create_audio_stream(manga_id, num_chapitre, num_case):
     try:
         conn = get_db_connection()
@@ -76,26 +75,31 @@ def create_audio_stream(manga_id, num_chapitre, num_case):
         res = None
     
     texte = res[0] if res else "Fin de l'histoire"
-    voix_choisie = "fr-FR-HenriNeural" 
     
-    # Nouvelle méthode de génération propre pour éviter les conflits de boucles
-    async def generate_voice() -> bytes:
-        communicate = edge_tts.Communicate(texte, voix_choisie)
-        audio_data = b""
-        async for chunk in communicate.stream():
-            if chunk["data"]:
-                audio_data += chunk["data"]
-        return audio_data
-
-    # Correction de la boucle d'événements pour Flask
-    try:
-        loop = asyncio.get_event_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        
-    audio_bytes = loop.run_until_complete(generate_voice())
+    # Initialisation du client Google TTS
+    client = texttospeech.TextToSpeechClient()
     
-    audio_fp = io.BytesIO(audio_bytes)
+    # Configuration du texte à lire
+    synthesis_input = texttospeech.SynthesisInput(text=texte)
+    
+    # Configuration de la voix Premium (fr-FR-Neural2-B = Voix d'homme type Cinéma/Studio)
+    voice = texttospeech.VoiceSelectionParams(
+        language_code="fr-FR",
+        name="fr-FR-Neural2-B"
+    )
+    
+    # Configuration du format audio (MP3)
+    audio_config = texttospeech.AudioConfig(
+        audio_encoding=texttospeech.AudioEncoding.MP3,
+        speaking_rate=1.0  # Vitesse normale
+    )
+    
+    # Génération instantanée et synchrone
+    response = client.synthesize_speech(
+        input=synthesis_input, voice=voice, audio_config=audio_config
+    )
+    
+    # Envoi du flux audio à Flask
+    audio_fp = io.BytesIO(response.audio_content)
     audio_fp.seek(0)
     return audio_fp
