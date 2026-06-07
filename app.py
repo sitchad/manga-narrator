@@ -1,12 +1,17 @@
 from flask import Flask, render_template
 from models.db import init_db
 from controllers.logic import (
-    liste_tous_les_mangas, afficher_manga, lire_page_manga,
-    ajouter_nouveau_manga, ajouter_nouveau_chapitre, ajouter_cases_chapitre
+    liste_tous_les_mangas, afficher_manga, lire_page_manga, charger_panel_admin,
+    ajouter_nouveau_manga, ajouter_nouveau_chapitre, ajouter_cases_chapitre,
+    supprimer_manga_action, supprimer_chapitre_action, vider_cases_action
 )
 
 app = Flask(__name__)
-init_db()
+
+try:
+    init_db()
+except Exception as e:
+    print(f"Alerte démarrage database: {e}")
 
 # --- CLIENT ---
 @app.route('/')
@@ -24,7 +29,7 @@ def manga_reader(manga_id, chapitre_id, numero_page):
 # --- ADMIN ---
 @app.route('/admin')
 def admin_panel():
-    return render_template('admin.html')
+    return charger_panel_admin()
 
 @app.route('/admin/ajouter-manga', methods=['POST'])
 def admin_add_manga():
@@ -37,6 +42,18 @@ def admin_add_chapitre():
 @app.route('/admin/ajouter-cases', methods=['POST'])
 def admin_add_cases():
     return ajouter_cases_chapitre()
+
+@app.route('/admin/supprimer-manga/<int:manga_id>')
+def admin_delete_manga(manga_id):
+    return supprimer_manga_action(manga_id)
+
+@app.route('/admin/supprimer-chapitre/<int:chapitre_id>')
+def admin_delete_chapitre(chapitre_id):
+    return supprimer_chapitre_action(chapitre_id)
+
+@app.route('/admin/vider-cases/<int:chapitre_id>')
+def admin_clear_cases(chapitre_id):
+    return vider_cases_action(chapitre_id)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

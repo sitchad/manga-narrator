@@ -20,7 +20,10 @@ def init_db():
     except Exception as e:
         print(f"[!] Erreur Connexion Supabase: {e}")
 
-# MANGAS
+# ==========================================
+#                  MANGAS
+# ==========================================
+
 def db_get_all_mangas():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -47,7 +50,10 @@ def db_insert_manga(nom, photo_url, description):
     cursor.close()
     conn.close()
 
-# CHAPITRES
+# ==========================================
+#                 CHAPITRES
+# ==========================================
+
 def db_get_chapitres_by_manga(manga_id):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -69,12 +75,18 @@ def db_get_chapitre_numero(chapitre_id):
 def db_insert_chapitre(manga_id, numero, titre, couverture_chapitre_url):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO chapitres (manga_id, numero, titre, couverture_chapitre_url) VALUES (%s, %s, %s, %s);", (int(manga_id), int(numero), titre, couverture_chapitre_url))
+    cursor.execute(
+        "INSERT INTO chapitres (manga_id, numero, titre, couverture_chapitre_url) VALUES (%s, %s, %s, %s);", 
+        (int(manga_id), int(numero), titre, couverture_chapitre_url)
+    )
     conn.commit()
     cursor.close()
     conn.close()
 
-# PAGES
+# ==========================================
+#                  PAGES
+# ==========================================
+
 def db_get_page(chapitre_id, numero_page):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -96,7 +108,38 @@ def db_check_next_page(chapitre_id, numero_page):
 def db_insert_page(chapitre_id, numero_page, image_url, texte_narration):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO pages (chapitre_id, numero_page, image_url, texte_narration) VALUES (%s, %s, %s, %s);", (int(chapitre_id), int(numero_page), image_url, texte_narration))
+    cursor.execute(
+        "INSERT INTO pages (chapitre_id, numero_page, image_url, texte_narration) VALUES (%s, %s, %s, %s);", 
+        (int(chapitre_id), int(numero_page), image_url, texte_narration)
+    )
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+# ==========================================
+#         OPTIONS DE SUPPRESSION
+# ==========================================
+
+def db_delete_manga(manga_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM mangas WHERE id = %s;", (manga_id,))
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+def db_delete_chapitre(chapitre_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM chapitres WHERE id = %s;", (chapitre_id,))
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+def db_delete_cases_by_chapitre(chapitre_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM pages WHERE chapitre_id = %s;", (chapitre_id,))
     conn.commit()
     cursor.close()
     conn.close()

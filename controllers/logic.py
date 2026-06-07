@@ -2,7 +2,8 @@ from flask import render_template, abort, request, redirect
 from models.db import (
     db_get_all_mangas, db_get_manga_by_id, db_insert_manga,
     db_get_chapitres_by_manga, db_get_chapitre_numero, db_insert_chapitre,
-    db_get_page, db_check_next_page, db_insert_page
+    db_get_page, db_check_next_page, db_insert_page,
+    db_delete_manga, db_delete_chapitre, db_delete_cases_by_chapitre
 )
 
 # --- CLIENT ---
@@ -34,6 +35,20 @@ def lire_page_manga(manga_id, chapitre_id, numero_page):
                            numero_page=numero_page, image_url=image_url, narration=narration, a_un_suivant=a_un_suivant)
 
 # --- ADMIN ---
+def charger_panel_admin():
+    mangas = db_get_all_mangas()
+    tous_les_chapitres = []
+    for m in mangas:
+        chaps = db_get_chapitres_by_manga(m[0])
+        for c in chaps:
+            tous_les_chapitres.append({
+                'id': c[0],
+                'manga_nom': m[1],
+                'numero': c[1],
+                'titre': c[2]
+            })
+    return render_template('admin.html', mangas=mangas, chapitres=tous_les_chapitres)
+
 def ajouter_nouveau_manga():
     nom = request.form.get('nom')
     photo_url = request.form.get('photo_url')
@@ -64,4 +79,16 @@ def ajouter_cases_chapitre():
         narration = liste_narrations[index] if index < len(liste_narrations) else ""
         db_insert_page(chapitre_id, index + 1, url, narration)
         
+    return redirect('/admin')
+
+def supprimer_manga_action(manga_id):
+    db_delete_manga(manga_id)
+    return redirect('/admin')
+
+def supprimer_chapitre_action(chapitre_id):
+    db_delete_chapitre(chapitre_id)
+    return redirect('/admin')
+
+def vider_cases_action(chapitre_id):
+    db_delete_cases_by_chapitre(chapitre_id)
     return redirect('/admin')
