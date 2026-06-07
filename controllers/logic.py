@@ -59,6 +59,7 @@ def fetch_manga_page(manga_id, num_chapitre, num_case):
         print(f"Erreur récupération case : {e}")
         return None
 
+# 🔥 FONCTION AUDIO SÉCURISÉE ET CORRIGÉE
 def create_audio_stream(manga_id, num_chapitre, num_case):
     try:
         conn = get_db_connection()
@@ -75,12 +76,9 @@ def create_audio_stream(manga_id, num_chapitre, num_case):
         res = None
     
     texte = res[0] if res else "Fin de l'histoire"
-    
-    # Configuration de la voix Microsoft (HenriNeural = Voix d'homme cinéma)
-    # Tu peux la remplacer par "fr-FR-DeniseNeural" si tu préfères une voix de femme
     voix_choisie = "fr-FR-HenriNeural" 
     
-    # Fonction asynchrone pour générer le flux audio avec Edge-TTS
+    # Nouvelle méthode de génération propre pour éviter les conflits de boucles
     async def generate_voice() -> bytes:
         communicate = edge_tts.Communicate(texte, voix_choisie)
         audio_data = b""
@@ -89,8 +87,14 @@ def create_audio_stream(manga_id, num_chapitre, num_case):
                 audio_data += chunk["data"]
         return audio_data
 
-    # Exécution de la coroutine dans l'environnement synchrone de Flask
-    audio_bytes = asyncio.run(generate_voice())
+    # Correction de la boucle d'événements pour Flask
+    try:
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
+    audio_bytes = loop.run_until_complete(generate_voice())
     
     audio_fp = io.BytesIO(audio_bytes)
     audio_fp.seek(0)
