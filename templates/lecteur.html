@@ -30,48 +30,45 @@
 
     <script>
         function lancerNarration() {
-            // On stoppe toute lecture en cours pour éviter les chevauchements
+            // On stoppe toute lecture en cours pour éviter les superpositions
             window.speechSynthesis.cancel();
 
-            // On récupère le texte de la case
+            // Récupération du texte de la case
             var texte = document.getElementById('texteNarration').innerText;
             
-            // Création de la requête vocale
+            // Création de l'objet de parole
             var parole = new SpeechSynthesisUtterance(texte);
-            parole.lang = 'fr-FR'; // Langue principale
-            parole.rate = 1.0;    // Vitesse de lecture (1.0 = normal)
-            parole.pitch = 1.0;   // Ton de la voix
+            parole.lang = 'fr-FR'; 
+            parole.rate = 1.0;    
+            parole.pitch = 1.0;   
 
-            // Essayer de slectionner une voix de haute qualité (Google ou Microsoft intégrée)
-            var voix Disponibles = window.speechSynthesis.getVoices();
+            // Sélection de la meilleure voix française disponible sur l'appareil
+            var voixDisponibles = window.speechSynthesis.getVoices();
             for (var i = 0; i < voixDisponibles.length; i++) {
-                if (voixDisponibles[i].lang.includes('fr') && voixDisponibles[i].name.includes('Google')) {
-                    parole.voice = voixDisponibles[i]; // Utilise la voix premium Google du téléphone si présente
+                if (voixDisponibles[i].lang.includes('fr')) {
+                    parole.voice = voixDisponibles[i];
                     break;
                 }
             }
 
-            // ACTION AUTOMATIQUE : Dès que la voix a fini de lire, on passe à la case suivante !
+            // Quand la voix se termine, on passe automatiquement à la case suivante
             parole.onend = function(event) {
                 window.location.href = "/manga/{{ manga_id }}/chapitre/{{ num_chapitre }}/case/{{ num_case + 1 }}";
             };
 
-            // On lance la voix
+            // Lancement de la synthèse vocale
             window.speechSynthesis.speak(parole);
         }
 
-        // Lancement automatique dès que la page est prête
-        // Note : Certains téléphones bloquent le premier démarrage, il suffit de cliquer une fois sur l'écran.
+        // Lancement au chargement de la page
         window.onload = function() {
             setTimeout(lancerNarration, 500);
         };
         
-        // Permet de débloquer l'audio sur mobile si le navigateur bloque le onload
+        // Sécurité pour débloquer l'audio sur les téléphones (qui bloquent l'activation sans clic)
         document.body.addEventListener('click', function() {
-            if (!window.speechSynthesis.speaking) {
-                lancerNarration();
-            }
-        });
+            lancerNarration();
+        }, { once: true }); // Ne se déclenche qu'au premier clic
     </script>
 </body>
 </html>
