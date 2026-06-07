@@ -1,3 +1,14 @@
+import psycopg2
+
+def get_db_connection():
+    return psycopg2.connect(
+        database="postgres",
+        user="postgres.liiyfrmmwqsbsjbnmrwj",
+        password="19902450aA@zZ#",
+        host="aws-0-eu-west-1.pooler.supabase.com",
+        port="6543"
+    )
+
 def init_db():
     conn = None
     try:
@@ -6,9 +17,9 @@ def init_db():
 
         cursor.execute("SET statement_timeout = 30000;")
 
-        # ❌ ON ENLÈVE LES "DROP TABLE IF EXISTS" POUR NE PLUS RIEN SUPPRIMER !
+        # ON ENLÈVE LES DROP TABLE POUR NE PLUS RIEN SUPPRIMER !
 
-        # 2. Création de la table mangas (SEULEMENT SI ELLE N'EXISTE PAS)
+        # Création de la table mangas (SEULEMENT SI ELLE N'EXISTE PAS)
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS mangas (
                 id SERIAL PRIMARY KEY,
@@ -20,7 +31,7 @@ def init_db():
             );
         ''')
 
-        # 3. Création de la table pages (SEULEMENT SI ELLE N'EXISTE PAS)
+        # Création de la table pages (SEULEMENT SI ELLE N'EXISTE PAS)
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS pages (
                 id SERIAL PRIMARY KEY,
