@@ -1,30 +1,16 @@
-import psycopg2
-
-def get_db_connection():
-    return psycopg2.connect(
-        database="postgres",
-        user="postgres.liiyfrmmwqsbsjbnmrwj",
-        password="19902450aA@zZ#",
-        host="aws-0-eu-west-1.pooler.supabase.com",
-        port="6543"
-    )
-
 def init_db():
     conn = None
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        
-        # Désactiver les verrous pour éviter que ça bloque si une ancienne requête tourne encore
+
         cursor.execute("SET statement_timeout = 30000;")
-        
-        # 1. Suppression propre des anciennes tables
-        cursor.execute("DROP TABLE IF EXISTS pages CASCADE;")
-        cursor.execute("DROP TABLE IF EXISTS mangas CASCADE;")
-        
-        # 2. Création de la table mangas
+
+        # ❌ ON ENLÈVE LES "DROP TABLE IF EXISTS" POUR NE PLUS RIEN SUPPRIMER !
+
+        # 2. Création de la table mangas (SEULEMENT SI ELLE N'EXISTE PAS)
         cursor.execute('''
-            CREATE TABLE mangas (
+            CREATE TABLE IF NOT EXISTS mangas (
                 id SERIAL PRIMARY KEY,
                 titre TEXT NOT NULL,
                 cover_url TEXT,
@@ -33,10 +19,10 @@ def init_db():
                 badge TEXT
             );
         ''')
-        
-        # 3. Création de la table pages (avec num_chapitre et numero_page)
+
+        # 3. Création de la table pages (SEULEMENT SI ELLE N'EXISTE PAS)
         cursor.execute('''
-            CREATE TABLE pages (
+            CREATE TABLE IF NOT EXISTS pages (
                 id SERIAL PRIMARY KEY,
                 manga_id INTEGER,
                 num_chapitre INTEGER,
@@ -45,10 +31,10 @@ def init_db():
                 texte_narration TEXT
             );
         ''')
-        
+
         conn.commit()
         cursor.close()
-        print("Supabase a bien été nettoyé et recréé à neuf !")
+        print("Base de données vérifiée : les tables existantes ont été conservées !")
     except Exception as e:
         print(f"Erreur d'initialisation de la base : {e}")
         if conn:
