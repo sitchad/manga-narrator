@@ -17,18 +17,19 @@ def init_db():
 
         cursor.execute("SET statement_timeout = 30000;")
 
-        # Sauvegarde des données : Pas de DROP TABLE !
+        # Table des mangas (Pas de DROP TABLE, conservation des données)
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS mangas (
                 id SERIAL PRIMARY KEY,
                 titre TEXT NOT NULL,
                 cover_url TEXT,
                 description TEXT,
-                note TEXT,
+                note FLOAT DEFAULT 0.0,
                 badge TEXT
             );
         ''')
 
+        # Table des pages
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS pages (
                 id SERIAL PRIMARY KEY,
@@ -40,9 +41,19 @@ def init_db():
             );
         ''')
 
+        # Table des votes pour le système de notation des clients
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS votes (
+                id SERIAL PRIMARY KEY,
+                manga_id INTEGER REFERENCES mangas(id) ON DELETE CASCADE,
+                ip_utilisateur TEXT,
+                valeur_note INTEGER CHECK (valeur_note >= 1 AND valeur_note <= 10)
+            );
+        ''')
+
         conn.commit()
         cursor.close()
-        print("Backend : Base de données vérifiée et opérationnelle !")
+        print("Backend : Structure Supabase vérifiée et opérationnelle !")
     except Exception as e:
         print(f"Erreur d'initialisation de la base : {e}")
         if conn:

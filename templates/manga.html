@@ -12,8 +12,10 @@
         .badge { background: #ff4757; padding: 5px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; }
         .chapters-section { background: #1e1e1e; padding: 20px; border-radius: 8px; }
         .chapters-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-top: 15px; }
-        .btn-chapter { display: block; padding: 12px; background: #2f3542; color: #fff; text-align: center; border-radius: 6px; text-decoration: none; font-weight: bold; border: 1px solid #57606f; transition: 0.2s; }
-        .btn-chapter:hover { background: #ff4757; border-color: #ff4757; }
+        .btn-chapter { display: block; padding: 12px; background: #2f3542; color: #fff; text-align: center; border-radius: 6px; text-decoration: none; font-weight: bold; border: 1px solid #57606f; }
+        .btn-chapter:hover { background: #ff4757; }
+        select, button { padding: 8px; background: #2f3542; color: white; border: 1px solid #57606f; border-radius: 4px; cursor: pointer; }
+        button { background: #ff4757; font-weight: bold; border: none; }
     </style>
 </head>
 <body>
@@ -25,23 +27,34 @@
             <div>
                 <h1>{{ manga[1] }}</h1>
                 {% if manga[5] %}<span class="badge">{{ manga[5] }}</span>{% endif %}
-                <p style="color: #f1f2f6; margin-top: 15px;">⭐ Note : {{ manga[4] }}/10</p>
-                <p style="color: #a4b0be; line-height: 1.5;">{{ manga[3] }}</p>
+                
+                <p style="color: #f1f2f6; margin-top: 15px;">⭐ Note des lecteurs : <strong>{{ manga[4] }}</strong>/10</p>
+                
+                <form action="/manga/voter" method="POST" style="margin-top: 10px; display: flex; gap: 8px; align-items: center;">
+                    <input type="hidden" name="manga_id" value="{{ manga[0] }}">
+                    <span style="font-size: 14px; color: #a4b0be;">Noter ce manga :</span>
+                    <select name="note_valeur">
+                        {% for i in range(10, 0, -1) %}
+                            <option value="{{ i }}">⭐ {{ i }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit">Voter</button>
+                </form>
+
+                <p style="color: #a4b0be; line-height: 1.5; margin-top: 20px;">{{ manga[3] }}</p>
             </div>
         </div>
 
         <div class="chapters-section">
-            <h3>📖 Sélectionner un Chapitre :</h3>
+            <h3>📖 Liste des Chapitres :</h3>
             {% if chapitres %}
                 <div class="chapters-grid">
                     {% for c in chapitres %}
-                        <a href="/manga/{{ manga[0] }}/chapitre/{{ c }}" class="btn-chapter">
-                            Chapitre {{ c }}
-                        </a>
+                        <a href="/manga/{{ manga[0] }}/chapitre/{{ c }}" class="btn-chapter">Chapitre {{ c }}</a>
                     {% endfor %}
                 </div>
             {% else %}
-                <p style="color: #ced6e0; font-style: italic;">Aucun chapitre n'est en ligne pour le moment.</p>
+                <p style="color: #ced6e0; font-style: italic;">Aucun chapitre disponible.</p>
             {% endif %}
         </div>
     </div>

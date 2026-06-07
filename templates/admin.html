@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Admin - Hub Manga</title>
+    <style>
+        body { background-color: #121212; color: #ffffff; font-family: Arial, sans-serif; padding: 20px; }
+        .container { max-width: 700px; margin: 0 auto; }
+        .section-form { background: #1e1e1e; padding: 20px; border-radius: 8px; margin-bottom: 30px; border: 1px solid #2f3542; }
+        h2 { border-bottom: 2px solid #ff4757; padding-bottom: 8px; color: #ff4757; }
+        label { display: block; margin-top: 12px; font-weight: bold; color: #a4b0be; }
+        input, textarea, select { width: 100%; padding: 10px; margin-top: 5px; background: #2f3542; border: 1px solid #57606f; border-radius: 5px; color: #fff; box-sizing: border-box; }
+        button { background: #ff4757; color: white; padding: 12px 20px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 15px; width: 100%; }
+        button:hover { background: #ff6b81; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛠️ Espace Administration</h1>
+        <a href="/" style="color: #a4b0be; text-decoration: none;">← Retour au site public</a>
+        <br><br>
+
+        <div class="section-form">
+            <h2>➕ Ajouter un Nouveau Manga</h2>
+            <form action="/admin/manga/add" method="POST">
+                <label>Titre du Manga *</label>
+                <input type="text" name="titre" required placeholder="Ex: One Piece">
+
+                <label>URL de la Couverture (Cover)</label>
+                <input type="url" name="cover_url" placeholder="https://lien.com/cover.jpg">
+
+                <label>Description / Synopsis</label>
+                <textarea name="description" rows="3" placeholder="Résumé..."></textarea>
+
+                <label>Badge</label>
+                <input type="text" name="badge" placeholder="Ex: NEW, HOT, EN COURS">
+
+                <button type="submit">Créer le Manga</button>
+            </form>
+        </div>
+
+        <div class="section-form">
+            <h2>📖 Ajouter un Chapitre Entier</h2>
+            <form action="/admin/chapitre/add" method="POST">
+                <label>Sélectionner le Manga *</label>
+                <select name="manga_id" required>
+                    <option value="">-- Choisir un manga --</option>
+                    {% for m in mangas %}
+                        <option value="{{ m[0] }}">{{ m[1] }}</option>
+                    {% endfor %}
+                </select>
+
+                <label>Numéro du Chapitre *</label>
+                <input type="number" name="num_chapitre" required placeholder="Ex: 1">
+
+                <label>URLs de toutes les cases (SÉPARÉES PAR DES VIRGULES `,`) *</label>
+                <textarea name="urls_cases" rows="6" required placeholder="https://site.com/1.jpg , https://site.com/2.jpg"></textarea>
+
+                <button type="submit">Publier le Chapitre</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
