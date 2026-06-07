@@ -14,15 +14,14 @@
         </div>
 
         <div style="background: rgba(0, 0, 0, 0.4); padding: 15px; border-radius: 6px; border-left: 4px solid #ff4757; margin-bottom: 20px; text-align: left;">
-            <p style="font-size: 1.2rem; margin: 0; font-style: italic; color: #e4e4e7; line-height: 1.5;">
-                "{{ texte }}"
+            <p id="texteNarration" style="font-size: 1.2rem; margin: 0; font-style: italic; color: #e4e4e7; line-height: 1.5;">
+                {{ texte }}
             </p>
         </div>
-
-        <audio id="mangaAudio" autoplay controls src="/audio/{{ manga_id }}/{{ num_chapitre }}/{{ num_case }}" style="width: 100%; margin-top: 10px;"></audio>
         
         <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
             <a href="/" style="color: #a1a1aa; text-decoration: none; font-size: 0.9rem;">🏠 Catalogue</a>
+            <button onclick="lancerNarration()" style="background: #27272a; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold;">🎙️ Relancer la voix</button>
             <a href="/manga/{{ manga_id }}/chapitre/{{ num_chapitre }}/case/{{ num_case + 1 }}" style="background: #ff4757; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold;">
                 Passer ➡️
             </a>
@@ -30,10 +29,49 @@
     </div>
 
     <script>
-        var audio = document.getElementById('mangaAudio');
-        audio.onended = function() {
-            window.location.href = "/manga/{{ manga_id }}/chapitre/{{ num_chapitre }}/case/{{ num_case + 1 }}";
+        function lancerNarration() {
+            // On stoppe toute lecture en cours pour éviter les chevauchements
+            window.speechSynthesis.cancel();
+
+            // On récupère le texte de la case
+            var texte = document.getElementById('texteNarration').innerText;
+            
+            // Création de la requête vocale
+            var parole = new SpeechSynthesisUtterance(texte);
+            parole.lang = 'fr-FR'; // Langue principale
+            parole.rate = 1.0;    // Vitesse de lecture (1.0 = normal)
+            parole.pitch = 1.0;   // Ton de la voix
+
+            // Essayer de slectionner une voix de haute qualité (Google ou Microsoft intégrée)
+            var voix Disponibles = window.speechSynthesis.getVoices();
+            for (var i = 0; i < voixDisponibles.length; i++) {
+                if (voixDisponibles[i].lang.includes('fr') && voixDisponibles[i].name.includes('Google')) {
+                    parole.voice = voixDisponibles[i]; // Utilise la voix premium Google du téléphone si présente
+                    break;
+                }
+            }
+
+            // ACTION AUTOMATIQUE : Dès que la voix a fini de lire, on passe à la case suivante !
+            parole.onend = function(event) {
+                window.location.href = "/manga/{{ manga_id }}/chapitre/{{ num_chapitre }}/case/{{ num_case + 1 }}";
+            };
+
+            // On lance la voix
+            window.speechSynthesis.speak(parole);
+        }
+
+        // Lancement automatique dès que la page est prête
+        // Note : Certains téléphones bloquent le premier démarrage, il suffit de cliquer une fois sur l'écran.
+        window.onload = function() {
+            setTimeout(lancerNarration, 500);
         };
+        
+        // Permet de débloquer l'audio sur mobile si le navigateur bloque le onload
+        document.body.addEventListener('click', function() {
+            if (!window.speechSynthesis.speaking) {
+                lancerNarration();
+            }
+        });
     </script>
 </body>
 </html>
