@@ -3,114 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lecture</title>
+    <title>Chapitre {{ num_chapitre }} - Page {{ numero_page }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+        .unselectable {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
     </style>
 </head>
-<body class="bg-black text-zinc-100 min-h-screen flex flex-col justify-between select-none overflow-x-hidden">
-    
-    <div id="audio-overlay" class="fixed inset-0 bg-zinc-950 z-[100] flex flex-col justify-center items-center p-4 hidden">
-        <div class="bg-zinc-900 border border-zinc-800 p-6 rounded-xl text-center max-w-xs w-full space-y-4 shadow-2xl">
-            <h2 class="text-xs font-black text-red-500 uppercase tracking-widest">Narration Vocale</h2>
-            <p class="text-[11px] text-zinc-400">Pour activer le rythme de narration audio de votre manga, cliquez sur le bouton ci-dessous.</p>
-            <button id="btn-start-audio" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded-lg text-xs transition uppercase tracking-wider">Activer le son</button>
+<body class="bg-black text-white min-h-screen flex flex-col justify-between unselectable">
+    <div class="w-full bg-zinc-950/80 backdrop-blur border-b border-zinc-900 p-4 flex justify-between items-center z-10">
+        <a href="/manga/{{ manga_id }}" class="text-xs bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded text-zinc-400 hover:text-white transition">✕ Quitter</a>
+        <span class="text-xs font-bold uppercase tracking-widest text-zinc-500">Chapitre {{ num_chapitre }} — <span class="text-white">Page {{ numero_page }}</span></span>
+        <div class="w-16"></div>
+    </div>
+
+    <div class="flex-1 flex flex-col items-center justify-center p-2 max-w-2xl mx-auto w-full relative">
+        <a href="/manga/{{ manga_id }}/{{ chapitre_id }}/{{ numero_page + 1 }}" class="w-full block group relative">
+            <img src="{{ image_url }}" alt="Manga case" class="w-full h-auto max-h-[70vh] object-contain mx-auto rounded-lg shadow-2xl transition duration-300 group-hover:opacity-95">
+        </a>
+    </div>
+
+    <div class="w-full bg-zinc-950 border-t border-zinc-900 p-5 pb-8">
+        <div class="max-w-xl mx-auto space-y-4">
+            {% if narration %}
+            <p class="text-sm md:text-base text-zinc-200 text-center font-medium leading-relaxed tracking-wide italic px-4">" {{ narration }} "</p>
+            {% else %}
+            <p class="text-xs text-zinc-600 text-center italic">(Pas de texte sur cette case)</p>
+            {% endif %}
+            <div class="flex justify-center">
+                {% if a_un_suivant %}
+                <a href="/manga/{{ manga_id }}/{{ chapitre_id }}/{{ numero_page + 1 }}" class="bg-white text-black font-black text-xs uppercase px-6 py-2.5 rounded-full tracking-wider hover:bg-zinc-200 transition">Continuer →</a>
+                {% else %}
+                <a href="/manga/{{ manga_id }}/{{ chapitre_id }}/{{ numero_page + 1 }}" class="bg-red-600 text-white font-black text-xs uppercase px-6 py-2.5 rounded-full tracking-wider hover:bg-red-500 transition">Terminer le Chapitre</a>
+                {% endif %}
+            </div>
         </div>
     </div>
 
-    <header class="bg-zinc-950/80 border-b border-zinc-900 p-4 sticky top-0 z-50 flex justify-between items-center px-6">
-        <a href="/manga/{{ manga_id }}" onclick="stopSpeech()" class="text-zinc-500 hover:text-white text-xs font-bold uppercase">← Quitter</a>
-        <div class="text-center">
-            <span class="text-xs uppercase tracking-wider text-red-600 font-black block">Chapitre {{ num_chapitre }}</span>
-            <span class="text-[10px] text-zinc-500 font-bold">Case {{ numero_page }}</span>
-        </div>
-        <div id="audio-indicator" class="text-xs text-red-500 font-bold animate-pulse">🔊 En attente...</div>
-    </header>
-
-    <main class="flex-1 flex flex-col items-center justify-center p-4 max-w-xl mx-auto w-full cursor-pointer" id="click-zone">
-        {% if narration %}
-        <div id="text-narration" class="w-full bg-zinc-950 border border-zinc-800 p-4 rounded-xl shadow-2xl mb-6 text-center text-xs md:text-sm font-medium text-zinc-200 leading-relaxed fade-in">
-            {{ narration }}
-        </div>
-        {% endif %}
-
-        <div class="relative w-full rounded-xl overflow-hidden shadow-2xl bg-zinc-950 flex justify-center items-center border border-zinc-900">
-            <img src="{{ image_url }}" alt="Case {{ numero_page }}" class="max-w-full max-h-[68vh] object-contain fade-in">
-        </div>
-
-        <p class="text-[9px] text-zinc-700 mt-4 tracking-widest uppercase animate-pulse">Appuie n'importe où pour passer à la suite</p>
-    </main>
-
-    <script>
-        const mId = "{{ manga_id }}";
-        const cId = "{{ chapitre_id }}";
-        const pActuelle = parseInt("{{ numero_page }}");
-
-        // Utilisation du LocalStorage JavaScript pour mémoriser si l'audio a été activé par le client
-        const isAudioUnlocked = localStorage.getItem('audioUnlocked') === 'true';
-
-        // --- ENREGISTREMENT ET LECTURE DE LA NARRATION ---
-        function startSpeech() {
-            const textEl = document.getElementById('text-narration');
-            const indicator = document.getElementById('audio-indicator');
-            
-            if (textEl) {
-                const textToRead = textEl.innerText.trim();
-                if (textToRead !== "") {
-                    window.speechSynthesis.cancel(); // Reset complet des voix
-
-                    const utterance = new SpeechSynthesisUtterance(textToRead);
-                    utterance.lang = 'fr-FR';
-                    utterance.rate = 1.0;
-
-                    utterance.onstart = () => {
-                        indicator.innerText = "🔊 Lecture...";
-                        indicator.classList.add('animate-pulse');
-                    };
-
-                    utterance.onend = () => {
-                        indicator.innerText = "静 🔇";
-                        indicator.classList.remove('animate-pulse');
-                    };
-
-                    window.speechSynthesis.speak(utterance);
-                } else {
-                    indicator.style.display = 'none';
-                }
-            } else {
-                indicator.style.display = 'none';
-            }
-        }
-
-        function stopSpeech() {
-            window.speechSynthesis.cancel();
-        }
-
-        // --- GESTION DES POLITIQUES NAVIGATEUR MOBILE ---
-        window.addEventListener('DOMContentLoaded', () => {
-            // Si c'est la première page et que le son n'a jamais été activé
-            if (pActuelle === 1 && !isAudioUnlocked) {
-                const overlay = document.getElementById('audio-overlay');
-                overlay.classList.remove('hidden');
-
-                document.getElementById('btn-start-audio').addEventListener('click', () => {
-                    localStorage.setItem('audioUnlocked', 'true');
-                    overlay.classList.add('hidden');
-                    // On lance immédiatement l'audio suite à cette interaction
-                    startSpeech();
-                });
-            } else {
-                // Si déjà débloqué ou si on est à la case 2+, ça passe automatiquement en JavaScript
-                setTimeout(startSpeech, 200);
-            }
-        });
-
-        // --- RHYTHME DU CLIC CLIENT ---
-        document.getElementById('click-zone').addEventListener('click', () => {
-            stopSpeech();
-            window.location.href = `/manga/${mId}/${cId}/${pActuelle + 1}`;
+    <script type="text/javascript">
+        aclib.runAutoTag({
+            zoneId: '3acdcanlnw',
         });
     </script>
 </body>

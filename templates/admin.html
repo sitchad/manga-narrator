@@ -32,14 +32,14 @@
                     <option value="{{ m[0] }}">{{ m[1] }}</option>
                     {% endfor %}
                 </select>
-                <input type="text" name="titre" placeholder="Titre du Chapitre (Ex: Romance Dawn)" required class="bg-black p-2 text-xs rounded border border-zinc-800 focus:outline-none focus:border-amber-500 w-full">
+                <input type="text" name="titre" placeholder="Titre du Chapitre" required class="bg-black p-2 text-xs rounded border border-zinc-800 focus:outline-none focus:border-amber-500 w-full">
                 <input type="url" name="couverture_chapitre_url" placeholder="URL Image Couverture du Chapitre" required class="bg-black p-2 text-xs rounded border border-zinc-800 focus:outline-none focus:border-amber-500 w-full">
                 <button type="submit" class="w-full bg-amber-600 text-xs font-bold py-2 rounded">Créer le Chapitre</button>
             </form>
         </div>
 
         <div class="bg-zinc-900 border border-zinc-800 p-5 rounded-xl space-y-3">
-            <h2 class="font-bold text-xs text-sky-400 uppercase tracking-wide">3. Injecter les Cases du Chapitre</h2>
+            <h2 class="font-bold text-xs text-sky-400 uppercase tracking-wide">3. Injecter les Cases (Une par une ou groupées)</h2>
             <form action="/admin/ajouter-cases" method="POST" class="space-y-3">
                 <select name="chapitre_id" required class="bg-black p-2 text-xs rounded border border-zinc-800 focus:outline-none focus:border-sky-500 w-full text-zinc-300">
                     <option value="" disabled selected>Sélectionner le Chapitre concerné...</option>
@@ -47,9 +47,9 @@
                     <option value="{{ c.id }}">[{{ c.manga_nom }}] Ch.{{ c.numero }} — {{ c.titre }}</option>
                     {% endfor %}
                 </select>
-                <textarea name="urls_cases" placeholder="URLs des cases (séparées par une virgule `,` )" rows="2" required class="bg-black p-2 text-xs rounded border border-zinc-800 focus:outline-none focus:border-sky-500 w-full"></textarea>
-                <textarea name="narrations_cases" placeholder="Narrations (séparées par un point-virgule `;` )" rows="2" class="bg-black p-2 text-xs rounded border border-zinc-800 focus:outline-none focus:border-sky-500 w-full"></textarea>
-                <button type="submit" class="w-full bg-sky-600 text-xs font-bold py-2 rounded">Injecter les Cases</button>
+                <textarea name="urls_cases" placeholder="URL de la case (ou plusieurs séparées par une virgule `,` )" rows="2" required class="bg-black p-2 text-xs rounded border border-zinc-800 focus:outline-none focus:border-sky-500 w-full"></textarea>
+                <textarea name="narrations_cases" placeholder="Narration de la case (ou plusieurs séparées par un point-virgule `;` )" rows="2" class="bg-black p-2 text-xs rounded border border-zinc-800 focus:outline-none focus:border-sky-500 w-full"></textarea>
+                <button type="submit" class="w-full bg-sky-600 text-xs font-bold py-2 rounded">Injecter la case</button>
             </form>
         </div>
 
@@ -61,7 +61,7 @@
                 {% for m in mangas %}
                 <div class="flex justify-between items-center bg-black p-2 rounded border border-zinc-800 text-xs">
                     <span><strong class="text-emerald-500">(ID: {{ m[0] }})</strong> {{ m[1] }}</span>
-                    <a href="/admin/supprimer-manga/{{ m[0] }}" onclick="return confirm('Supprimer ce manga supprimera aussi tous ses chapitres et cases. Confirmer ?')" class="text-[10px] bg-red-950 border border-red-900 hover:bg-red-900 text-red-200 px-2 py-1 rounded transition">Supprimer</a>
+                    <a href="/admin/supprimer-manga/{{ m[0] }}" onclick="return confirm('Supprimer ce manga supprimera tous ses chapitres et cases. Confirmer ?')" class="text-[10px] bg-red-950 border border-red-900 hover:bg-red-900 text-red-200 px-2 py-1 rounded transition">Supprimer</a>
                 </div>
                 {% else %}
                 <p class="text-[11px] text-zinc-600">Aucun manga enregistré.</p>
@@ -73,10 +73,10 @@
                 {% for c in chapitres %}
                 <div class="bg-black p-2 rounded border border-zinc-800 space-y-2 text-xs">
                     <div class="flex justify-between items-center">
-                        <span>[{{ c.manga_nom }}] Ch.{{ c.numero }} — {{ c.titre }} <strong class="text-amber-500">(ID Chapitre: {{ c.id }})</strong></span>
+                        <span>[{{ c.manga_nom }}] Ch.{{ c.numero }} — {{ c.titre }} <strong class="text-amber-500">(ID: {{ c.id }})</strong></span>
                         <div class="flex gap-2">
-                            <a href="/admin/vider-cases/{{ c.id }}" onclick="return confirm('Voulez-vous vider toutes les cases de ce chapitre pour les ré-injecter ?')" class="text-[10px] bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-300 px-2 py-1 rounded transition">Vider les cases</a>
-                            <a href="/admin/supprimer-chapitre/{{ c.id }}" onclick="return confirm('Confirmer la suppression complète du chapitre ?')" class="text-[10px] bg-red-950 border border-red-900 hover:bg-red-900 text-red-200 px-2 py-1 rounded transition">Supprimer</a>
+                            <a href="/admin/vider-cases/{{ c.id }}" onclick="return confirm('Vider toutes les cases de ce chapitre ?')" class="text-[10px] bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-300 px-2 py-1 rounded transition">Vider cases</a>
+                            <a href="/admin/supprimer-chapitre/{{ c.id }}" onclick="return confirm('Supprimer complètement ce chapitre ?')" class="text-[10px] bg-red-950 border border-red-900 hover:bg-red-900 text-red-200 px-2 py-1 rounded transition">Supprimer</a>
                         </div>
                     </div>
                 </div>

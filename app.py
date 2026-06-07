@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask
 from models.db import init_db
 from controllers.logic import (
     liste_tous_les_mangas, afficher_manga, lire_page_manga, charger_panel_admin,
@@ -13,7 +13,7 @@ try:
 except Exception as e:
     print(f"Alerte démarrage database: {e}")
 
-# --- CLIENT ---
+# --- ENTRÉES CLIENT ---
 @app.route('/')
 def index():
     return liste_tous_les_mangas()
@@ -26,7 +26,7 @@ def manga_detail(manga_id):
 def manga_reader(manga_id, chapitre_id, numero_page):
     return lire_page_manga(manga_id, chapitre_id, numero_page)
 
-# --- ADMIN ---
+# --- ACCÈS & ACTIONS SÉCURISÉES ADMIN ---
 @app.route('/admin')
 def admin_panel():
     return charger_panel_admin()

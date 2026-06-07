@@ -3,37 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ manga[1] }} - Chapitres</title>
+    <title>{{ manga[1] }} - Manga Hub</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-black text-white min-h-screen py-12 px-4">
-    <div class="max-w-4xl mx-auto space-y-8">
-        <a href="/" class="bg-zinc-900 text-xs px-4 py-2 rounded border border-zinc-800 transition hover:bg-zinc-800 inline-block">← Accueil</a>
+<body class="bg-zinc-950 text-white min-h-screen font-sans p-4 md:p-8">
+    <div class="max-w-2xl mx-auto space-y-6">
+        <a href="/" class="text-xs text-zinc-400 hover:text-white transition block">← Retour à l'accueil</a>
         
-        <div class="flex flex-col sm:flex-row gap-6 bg-zinc-950 p-6 rounded-xl border border-zinc-900 items-center sm:items-start">
-            <img src="{{ manga[2] }}" alt="{{ manga[1] }}" class="w-36 rounded-lg object-cover aspect-[3/4] border border-zinc-800">
-            <div class="space-y-2 text-center sm:text-left">
-                <h1 class="text-2xl font-black">{{ manga[1] }}</h1>
-                <p class="text-xs text-zinc-400 leading-relaxed">{{ manga[3] }}</p>
+        <div class="flex flex-col sm:flex-row gap-5 bg-zinc-900 border border-zinc-900 p-5 rounded-2xl">
+            <div class="w-full sm:w-40 aspect-[3/4] bg-zinc-800 rounded-xl overflow-hidden flex-shrink-0">
+                <img src="{{ manga[2] }}" alt="{{ manga[1] }}" class="w-full h-full object-cover">
+            </div>
+            <div class="space-y-2">
+                <h1 class="text-xl font-black uppercase tracking-wide">{{ manga[1] }}</h1>
+                <p class="text-xs text-zinc-400 leading-relaxed">{{ manga[3] or 'Aucun synopsis disponible.' }}</p>
             </div>
         </div>
 
-        <div class="bg-zinc-950 p-6 rounded-xl border border-zinc-900 space-y-4">
-            <h2 class="text-xs font-bold text-zinc-400 uppercase tracking-wider border-b border-zinc-900 pb-2">Liste des Chapitres</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {% for ch in chapitres %}
-                <a href="/manga/{{ manga[0] }}/{{ ch[0] }}/1" class="bg-zinc-900 hover:bg-zinc-800/40 border border-zinc-800 p-4 rounded-xl flex gap-4 items-center group transition">
-                    <img src="{{ ch[3] }}" alt="Couverture" class="w-10 h-14 object-cover rounded border border-zinc-800 bg-black">
+        <div class="space-y-3">
+            <h2 class="text-xs font-bold text-zinc-400 uppercase tracking-wider">Chapitres Disponibles :</h2>
+            <div class="grid gap-2">
+                {% for c in chapitres %}
+                <a href="/manga/{{ manga[0] }}/{{ c[0] }}/1" class="flex items-center gap-4 bg-zinc-900 border border-zinc-900 hover:border-zinc-800 p-3 rounded-xl transition group">
+                    <div class="w-12 h-12 bg-zinc-800 rounded-lg overflow-hidden flex-shrink-0">
+                        <img src="{{ c[3] }}" alt="Ch.{{ c[1] }}" class="w-full h-full object-cover">
+                    </div>
                     <div>
-                        <h3 class="font-bold text-xs text-zinc-200 group-hover:text-red-500 transition">Chapitre {{ ch[1] }}</h3>
-                        <p class="text-[11px] text-zinc-500 line-clamp-1">{{ ch[2] }}</p>
+                        <h3 class="text-sm font-bold group-hover:text-red-400 transition">Chapitre {{ c[1] }}</h3>
+                        <p class="text-xs text-zinc-500 truncate max-w-md">{{ c[2] }}</p>
                     </div>
                 </a>
                 {% else %}
-                <p class="text-xs text-zinc-600 py-2">Aucun chapitre n'est disponible.</p>
+                <p class="text-xs text-zinc-600 py-4">Aucun chapitre publié pour le moment.</p>
                 {% endfor %}
             </div>
         </div>
     </div>
+
+    <script type="text/javascript">
+        aclib.runAutoTag({
+            zoneId: '3acdcanlnw',
+        });
+    </script>
 </body>
 </html>

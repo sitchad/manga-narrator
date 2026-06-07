@@ -93,7 +93,7 @@ def db_insert_chapitre(manga_id, numero, titre, couverture_chapitre_url):
     conn.close()
 
 # ==========================================
-#                  PAGES
+#                  PAGES / CASES
 # ==========================================
 
 def db_get_page(chapitre_id, numero_page):
@@ -114,6 +114,15 @@ def db_check_next_page(chapitre_id, numero_page):
     conn.close()
     return has_next
 
+def db_get_max_page_numero(chapitre_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT MAX(numero_page) FROM pages WHERE chapitre_id = %s;", (chapitre_id,))
+    row = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    return row[0] if row[0] is not None else 0
+
 def db_insert_page(chapitre_id, numero_page, image_url, texte_narration):
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -126,7 +135,7 @@ def db_insert_page(chapitre_id, numero_page, image_url, texte_narration):
     conn.close()
 
 # ==========================================
-#         OPTIONS DE SUPPRESSION
+#         SUPPRESSIONS (ESPACE ADMIN)
 # ==========================================
 
 def db_delete_manga(manga_id):

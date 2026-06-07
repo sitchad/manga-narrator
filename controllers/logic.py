@@ -4,13 +4,13 @@ from models.db import (
     db_get_chapitres_by_manga, db_get_chapitre_numero, db_insert_chapitre,
     db_get_page, db_check_next_page, db_insert_page,
     db_delete_manga, db_delete_chapitre, db_delete_cases_by_chapitre,
-    db_get_max_chapitre_numero
+    db_get_max_chapitre_numero, db_get_max_page_numero
 )
 
 # --- CLIENT ---
 def liste_tous_les_mangas():
     mangas = db_get_all_mangas()
-    return render_template("index.html", mangas=mangas)
+    return render_template("home.html", mangas=mangas)
 
 def afficher_manga(manga_id):
     manga = db_get_manga_by_id(manga_id)
@@ -65,7 +65,6 @@ def ajouter_nouveau_chapitre():
     if not manga_id:
         return "Erreur : Aucun manga sélectionné", 400
         
-    # Calcul automatique du numéro de chapitre suivant (+1)
     dernier_numero = db_get_max_chapitre_numero(manga_id)
     prochain_numero = dernier_numero + 1
     
@@ -83,9 +82,12 @@ def ajouter_cases_chapitre():
     liste_urls = [url.strip() for url in urls_brutes.split(',') if url.strip()]
     liste_narrations = [n.strip() for n in narrations_brutes.split(';')] if narrations_brutes else []
     
+    page_actuelle_max = db_get_max_page_numero(chapitre_id)
+    
     for index, url in enumerate(liste_urls):
         narration = liste_narrations[index] if index < len(liste_narrations) else ""
-        db_insert_page(chapitre_id, index + 1, url, narration)
+        prochain_numero_page = page_actuelle_max + index + 1
+        db_insert_page(chapitre_id, prochain_numero_page, url, narration)
         
     return redirect('/admin')
 
