@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MangaCine - Lecture</title>
+    <title>MangaCine - Lecture Premium</title>
 </head>
 <body style="background: #060607; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 20px; display: flex; flex-direction: column; justify-content: center; min-height: 100vh; box-sizing: border-box;">
 
@@ -29,46 +29,59 @@
     </div>
 
     <script>
+        let parole = null;
+
         function lancerNarration() {
-            // On stoppe toute lecture en cours pour éviter les superpositions
+            // On stoppe tout son en cours pour éviter les bugs
             window.speechSynthesis.cancel();
 
-            // Récupération du texte de la case
             var texte = document.getElementById('texteNarration').innerText;
+            parole = new SpeechSynthesisUtterance(texte);
             
-            // Création de l'objet de parole
-            var parole = new SpeechSynthesisUtterance(texte);
+            // Configuration de base
             parole.lang = 'fr-FR'; 
-            parole.rate = 1.0;    
+            parole.rate = 0.95; // Légèrement plus lent pour faire plus dramatique/cinéma   
             parole.pitch = 1.0;   
 
-            // Sélection de la meilleure voix française disponible sur l'appareil
+            // 🌟 SÉLECTION DE LA MEILLEURE VOIX (QUALITÉ SUPÉRIEURE)
             var voixDisponibles = window.speechSynthesis.getVoices();
-            for (var i = 0; i < voixDisponibles.length; i++) {
-                if (voixDisponibles[i].lang.includes('fr')) {
-                    parole.voice = voixDisponibles[i];
-                    break;
-                }
+            
+            // On cherche d'abord les voix Google "Premium" ou "Natural" sur l'appareil
+            let voixTrouvee = voixDisponibles.find(v => v.lang.includes('fr') && (v.name.includes('Google') || v.name.includes('Natural')));
+            
+            // Si pas de voix Google Premium, on prend n'importe quelle bonne voix française
+            if (!voixTrouvee) {
+                voixTrouvee = voixDisponibles.find(v => v.lang.includes('fr'));
             }
 
-            // Quand la voix se termine, on passe automatiquement à la case suivante
+            if (voixTrouvee) {
+                parole.voice = voixTrouvee;
+            }
+
+            // 🔄 Enchaînement automatique des cases
             parole.onend = function(event) {
-                window.location.href = "/manga/{{ manga_id }}/chapitre/{{ num_chapitre }}/case/{{ num_case + 1 }}";
+                setTimeout(function() {
+                    window.location.href = "/manga/{{ manga_id }}/chapitre/{{ num_chapitre }}/case/{{ num_case + 1 }}";
+                }, 800); // Petite pause de 0.8 seconde après la phrase avant de changer de case
             };
 
-            // Lancement de la synthèse vocale
+            // Lancement effectif du son
             window.speechSynthesis.speak(parole);
         }
 
-        // Lancement au chargement de la page
+        // Chargement automatique
         window.onload = function() {
-            setTimeout(lancerNarration, 500);
+            // On attend un tout petit peu que les voix du téléphone se chargent en mémoire
+            if (window.speechSynthesis.onvoiceschanged !== undefined) {
+                window.speechSynthesis.onvoiceschanged = lancerNarration;
+            }
+            setTimeout(lancerNarration, 600);
         };
         
-        // Sécurité pour débloquer l'audio sur les téléphones (qui bloquent l'activation sans clic)
+        // Sécurité anti-blocage mobile : Un clic n'importe où sur l'écran active la voix cinéma
         document.body.addEventListener('click', function() {
             lancerNarration();
-        }, { once: true }); // Ne se déclenche qu'au premier clic
+        }, { once: true });
     </script>
 </body>
 </html>
