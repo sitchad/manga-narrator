@@ -3,59 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ manga[1] }} - Hub Manga</title>
-    <style>
-        body { background-color: #121212; color: #ffffff; font-family: Arial, sans-serif; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; }
-        .header-manga { display: flex; gap: 20px; margin-bottom: 30px; }
-        .cover { width: 200px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
-        .badge { background: #ff4757; padding: 5px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; }
-        .chapters-section { background: #1e1e1e; padding: 20px; border-radius: 8px; }
-        .chapters-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-top: 15px; }
-        .btn-chapter { display: block; padding: 12px; background: #2f3542; color: #fff; text-align: center; border-radius: 6px; text-decoration: none; font-weight: bold; border: 1px solid #57606f; }
-        .btn-chapter:hover { background: #ff4757; }
-        select, button { padding: 8px; background: #2f3542; color: white; border: 1px solid #57606f; border-radius: 4px; cursor: pointer; }
-        button { background: #ff4757; font-weight: bold; border: none; }
-    </style>
+    <title>{{ manga[1] }} - Chapitres</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <div class="container">
-        <a href="/" style="color: #ff4757; text-decoration: none; font-weight: bold;">← Retour à l'accueil</a>
+<body class="bg-black text-white min-h-screen py-12 px-4">
+    <div class="max-w-4xl mx-auto space-y-8">
+        <a href="/" class="bg-zinc-900 text-xs px-4 py-2 rounded border border-zinc-800 transition hover:bg-zinc-800 inline-block">← Accueil</a>
         
-        <div class="header-manga" style="margin-top: 20px;">
-            <img src="{{ manga[2] }}" class="cover" alt="Cover">
-            <div>
-                <h1>{{ manga[1] }}</h1>
-                {% if manga[5] %}<span class="badge">{{ manga[5] }}</span>{% endif %}
-                
-                <p style="color: #f1f2f6; margin-top: 15px;">⭐ Note des lecteurs : <strong>{{ manga[4] }}</strong>/10</p>
-                
-                <form action="/manga/voter" method="POST" style="margin-top: 10px; display: flex; gap: 8px; align-items: center;">
-                    <input type="hidden" name="manga_id" value="{{ manga[0] }}">
-                    <span style="font-size: 14px; color: #a4b0be;">Noter ce manga :</span>
-                    <select name="note_valeur">
-                        {% for i in range(10, 0, -1) %}
-                            <option value="{{ i }}">⭐ {{ i }}</option>
-                        {% endfor %}
-                    </select>
-                    <button type="submit">Voter</button>
-                </form>
-
-                <p style="color: #a4b0be; line-height: 1.5; margin-top: 20px;">{{ manga[3] }}</p>
+        <div class="flex flex-col sm:flex-row gap-6 bg-zinc-950 p-6 rounded-xl border border-zinc-900 items-center sm:items-start">
+            <img src="{{ manga[2] }}" alt="{{ manga[1] }}" class="w-36 rounded-lg object-cover aspect-[3/4] border border-zinc-800">
+            <div class="space-y-2 text-center sm:text-left">
+                <h1 class="text-2xl font-black">{{ manga[1] }}</h1>
+                <p class="text-xs text-zinc-400 leading-relaxed">{{ manga[3] }}</p>
             </div>
         </div>
 
-        <div class="chapters-section">
-            <h3>📖 Liste des Chapitres :</h3>
-            {% if chapitres %}
-                <div class="chapters-grid">
-                    {% for c in chapitres %}
-                        <a href="/manga/{{ manga[0] }}/chapitre/{{ c }}" class="btn-chapter">Chapitre {{ c }}</a>
-                    {% endfor %}
-                </div>
-            {% else %}
-                <p style="color: #ced6e0; font-style: italic;">Aucun chapitre disponible.</p>
-            {% endif %}
+        <div class="bg-zinc-950 p-6 rounded-xl border border-zinc-900 space-y-4">
+            <h2 class="text-xs font-bold text-zinc-400 uppercase tracking-wider border-b border-zinc-900 pb-2">Liste des Chapitres</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {% for ch in chapitres %}
+                <a href="/manga/{{ manga[0] }}/{{ ch[0] }}/1" class="bg-zinc-900 hover:bg-zinc-800/40 border border-zinc-800 p-4 rounded-xl flex gap-4 items-center group transition">
+                    <img src="{{ ch[3] }}" alt="Couverture" class="w-10 h-14 object-cover rounded border border-zinc-800 bg-black">
+                    <div>
+                        <h3 class="font-bold text-xs text-zinc-200 group-hover:text-red-500 transition">Chapitre {{ ch[1] }} (ID: {{ ch[0] }})</h3>
+                        <p class="text-[11px] text-zinc-500 line-clamp-1">{{ ch[2] }}</p>
+                    </div>
+                </a>
+                {% else %}
+                <p class="text-xs text-zinc-600 py-2">Aucun chapitre n'est disponible.</p>
+                {% endfor %}
+            </div>
         </div>
     </div>
 </body>

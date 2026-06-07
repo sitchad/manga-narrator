@@ -3,44 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ma Bibliothèque Manga</title>
-    <style>
-        body { background-color: #121212; color: #ffffff; font-family: Arial, sans-serif; margin: 0; padding: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        h1 { border-bottom: 2px solid #ff4757; padding-bottom: 10px; color: #fff; }
-        .manga-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; margin-top: 25px; }
-        .manga-card { background: #1e1e1e; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.5); border: 1px solid #2f3542; text-decoration: none; color: white; transition: transform 0.2s; display: flex; flex-direction: column; }
-        .manga-card:hover { transform: scale(1.03); border-color: #ff4757; }
-        .cover-wrapper { position: relative; width: 100%; pt: 140%; /* Ratio affiche */ height: 250px; background: #2f3542; }
-        .cover-img { width: 100%; height: 100%; object-fit: cover; }
-        .badge { position: absolute; top: 10px; right: 10px; background: #ff4757; color: white; padding: 4px 8px; font-size: 11px; font-weight: bold; border-radius: 4px; }
-        .manga-info { padding: 12px; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; }
-        .manga-title { font-size: 16px; font-weight: bold; margin: 0 0 8px 0; color: #fff; }
-        .manga-meta { display: flex; justify-content: space-between; font-size: 13px; color: #a4b0be; }
-    </style>
+    <title>Manga Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <div class="container">
-        <h1>📚 Ma Bibliothèque Manga</h1>
-        
-        <div class="manga-grid">
+<body class="bg-black text-white min-h-screen">
+    <header class="p-6 border-b border-zinc-900 bg-zinc-950 flex justify-between items-center">
+        <h1 class="text-xl font-black tracking-wider text-red-600">MANGA<span class="text-white font-light">NARRATOR</span></h1>
+        <a href="/admin" class="text-xs bg-zinc-800 hover:bg-zinc-700 px-3 py-1.5 rounded transition font-bold text-zinc-300">Admin</a>
+    </header>
+    <main class="max-w-7xl mx-auto p-6">
+        <h2 class="text-sm font-bold mb-6 text-zinc-400 border-l-4 border-red-600 pl-3 uppercase tracking-wider">Liste des Mangas</h2>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
             {% for manga in mangas %}
-                <a href="/manga/{{ manga[0] }}" class="manga-card">
-                    <div class="cover-wrapper">
-                        <img src="{{ manga[2] if manga[2] else 'https://via.placeholder.com/180x250' }}" class="cover-img" alt="{{ manga[1] }}">
-                        {% if manga[5] %}
-                            <span class="badge">{{ manga[5] }}</span>
-                        {% endif %}
-                    </div>
-                    <div class="manga-info">
-                        <div class="manga-title">{{ manga[1] }}</div>
-                        <div class="manga-meta">
-                            <span>⭐ {{ manga[4] if manga[4] else '0.0' }}/10</span>
-                        </div>
-                    </div>
-                </a>
+            <a href="/manga/{{ manga[0] }}" class="group bg-zinc-950 border border-zinc-900 rounded-lg overflow-hidden block hover:border-zinc-700 transition">
+                <div class="aspect-[3/4] bg-zinc-900 overflow-hidden">
+                    <img src="{{ manga[2] }}" alt="{{ manga[1] }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                </div>
+                <div class="p-3 text-center">
+                    <h3 class="font-bold text-xs text-zinc-200 group-hover:text-red-500 transition line-clamp-1">ID: {{ manga[0] }} — {{ manga[1] }}</h3>
+                </div>
+            </a>
+            {% else %}
+            <p class="text-zinc-600 text-center col-span-full text-xs py-10">Aucun manga disponible.</p>
             {% endfor %}
         </div>
-    </div>
+    </main>
 </body>
 </html>

@@ -1,7 +1,3 @@
-Flask==3.1.3
-gunicorn==23.0.0
-psycopg2-binary==2.9.12
-gtts==2.5.4
-beautifulsoup4==4.14.3
-requests==2.33.1
-google-cloud-texttospeech
+Flask==3.0.2
+psycopg2-binary==2.9.9
+gunicorn==21.2.0
