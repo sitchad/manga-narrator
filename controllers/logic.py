@@ -31,7 +31,6 @@ def lire_page_manga(manga_id, num_chapitre, numero_page):
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    # On force la conversion en entier pour éviter tout problème de type URL
     try:
         manga_id = int(manga_id)
         num_chapitre = int(num_chapitre)
@@ -51,7 +50,6 @@ def lire_page_manga(manga_id, num_chapitre, numero_page):
     if not page_actuelle:
         cursor.close()
         conn.close()
-        # Si c'est la page 1 et qu'il n'y a rien, c'est que le chapitre est vide
         if numero_page == 1:
             return "Ce chapitre ne contient pas encore de cases. Ajoutez-les depuis l'espace admin.", 404
         return render_template("fin_chapitre.html", manga_id=manga_id, num_chapitre=num_chapitre)
