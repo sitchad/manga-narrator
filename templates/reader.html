@@ -11,18 +11,27 @@
     </style>
 </head>
 <body class="bg-black text-zinc-100 min-h-screen flex flex-col justify-between select-none overflow-x-hidden">
+    
+    <div id="audio-overlay" class="fixed inset-0 bg-zinc-950 z-[100] flex flex-col justify-center items-center p-4 hidden">
+        <div class="bg-zinc-900 border border-zinc-800 p-6 rounded-xl text-center max-w-xs w-full space-y-4 shadow-2xl">
+            <h2 class="text-xs font-black text-red-500 uppercase tracking-widest">Narration Vocale</h2>
+            <p class="text-[11px] text-zinc-400">Pour activer le rythme de narration audio de votre manga, cliquez sur le bouton ci-dessous.</p>
+            <button id="btn-start-audio" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded-lg text-xs transition uppercase tracking-wider">Activer le son</button>
+        </div>
+    </div>
+
     <header class="bg-zinc-950/80 border-b border-zinc-900 p-4 sticky top-0 z-50 flex justify-between items-center px-6">
-        <a href="/manga/{{ manga_id }}" class="text-zinc-500 hover:text-white text-xs font-bold uppercase">← Quitter</a>
+        <a href="/manga/{{ manga_id }}" onclick="stopSpeech()" class="text-zinc-500 hover:text-white text-xs font-bold uppercase">← Quitter</a>
         <div class="text-center">
-            <span class="text-xs uppercase text-red-600 font-black block">Chapitre {{ num_chapitre }}</span>
+            <span class="text-xs uppercase tracking-wider text-red-600 font-black block">Chapitre {{ num_chapitre }}</span>
             <span class="text-[10px] text-zinc-500 font-bold">Case {{ numero_page }}</span>
         </div>
-        <div class="w-12"></div>
+        <div id="audio-indicator" class="text-xs text-red-500 font-bold animate-pulse">🔊 En attente...</div>
     </header>
 
     <main class="flex-1 flex flex-col items-center justify-center p-4 max-w-xl mx-auto w-full cursor-pointer" id="click-zone">
         {% if narration %}
-        <div class="w-full bg-zinc-950 border border-zinc-800 p-4 rounded-xl shadow-2xl mb-6 text-center text-xs md:text-sm font-medium text-zinc-200 leading-relaxed fade-in">
+        <div id="text-narration" class="w-full bg-zinc-950 border border-zinc-800 p-4 rounded-xl shadow-2xl mb-6 text-center text-xs md:text-sm font-medium text-zinc-200 leading-relaxed fade-in">
             {{ narration }}
         </div>
         {% endif %}
@@ -31,14 +40,76 @@
             <img src="{{ image_url }}" alt="Case {{ numero_page }}" class="max-w-full max-h-[68vh] object-contain fade-in">
         </div>
 
-        <p class="text-[9px] text-zinc-700 mt-4 tracking-widest uppercase animate-pulse">Appuie pour faire défiler le rythme</p>
+        <p class="text-[9px] text-zinc-700 mt-4 tracking-widest uppercase animate-pulse">Appuie n'importe où pour passer à la suite</p>
     </main>
 
     <script>
         const mId = "{{ manga_id }}";
         const cId = "{{ chapitre_id }}";
         const pActuelle = parseInt("{{ numero_page }}");
+
+        // Utilisation du LocalStorage JavaScript pour mémoriser si l'audio a été activé par le client
+        const isAudioUnlocked = localStorage.getItem('audioUnlocked') === 'true';
+
+        // --- ENREGISTREMENT ET LECTURE DE LA NARRATION ---
+        function startSpeech() {
+            const textEl = document.getElementById('text-narration');
+            const indicator = document.getElementById('audio-indicator');
+            
+            if (textEl) {
+                const textToRead = textEl.innerText.trim();
+                if (textToRead !== "") {
+                    window.speechSynthesis.cancel(); // Reset complet des voix
+
+                    const utterance = new SpeechSynthesisUtterance(textToRead);
+                    utterance.lang = 'fr-FR';
+                    utterance.rate = 1.0;
+
+                    utterance.onstart = () => {
+                        indicator.innerText = "🔊 Lecture...";
+                        indicator.classList.add('animate-pulse');
+                    };
+
+                    utterance.onend = () => {
+                        indicator.innerText = "静 🔇";
+                        indicator.classList.remove('animate-pulse');
+                    };
+
+                    window.speechSynthesis.speak(utterance);
+                } else {
+                    indicator.style.display = 'none';
+                }
+            } else {
+                indicator.style.display = 'none';
+            }
+        }
+
+        function stopSpeech() {
+            window.speechSynthesis.cancel();
+        }
+
+        // --- GESTION DES POLITIQUES NAVIGATEUR MOBILE ---
+        window.addEventListener('DOMContentLoaded', () => {
+            // Si c'est la première page et que le son n'a jamais été activé
+            if (pActuelle === 1 && !isAudioUnlocked) {
+                const overlay = document.getElementById('audio-overlay');
+                overlay.classList.remove('hidden');
+
+                document.getElementById('btn-start-audio').addEventListener('click', () => {
+                    localStorage.setItem('audioUnlocked', 'true');
+                    overlay.classList.add('hidden');
+                    // On lance immédiatement l'audio suite à cette interaction
+                    startSpeech();
+                });
+            } else {
+                // Si déjà débloqué ou si on est à la case 2+, ça passe automatiquement en JavaScript
+                setTimeout(startSpeech, 200);
+            }
+        });
+
+        // --- RHYTHME DU CLIC CLIENT ---
         document.getElementById('click-zone').addEventListener('click', () => {
+            stopSpeech();
             window.location.href = `/manga/${mId}/${cId}/${pActuelle + 1}`;
         });
     </script>
