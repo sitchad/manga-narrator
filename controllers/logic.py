@@ -1,4 +1,4 @@
-from flask import render_template, abort, request, redirect, jsonify
+from flask import render_template, abort, request, redirect
 from models.db import (
     db_get_all_mangas, db_get_manga_by_id, db_insert_manga,
     db_get_chapitres_by_manga, db_get_chapitre_numero, db_insert_chapitre,
@@ -50,10 +50,6 @@ def charger_panel_admin():
             })
     return render_template('admin.html', mangas=mangas, chapitres=tous_les_chapitres)
 
-def api_prochain_chapitre_numero(manga_id):
-    max_num = db_get_max_chapitre_numero(manga_id)
-    return jsonify({"prochain_numero": max_num + 1})
-
 def ajouter_nouveau_manga():
     nom = request.form.get('nom')
     photo_url = request.form.get('photo_url')
@@ -63,10 +59,17 @@ def ajouter_nouveau_manga():
 
 def ajouter_nouveau_chapitre():
     manga_id = request.form.get('manga_id')
-    numero = request.form.get('numero')
     titre = request.form.get('titre')
     couverture_chapitre_url = request.form.get('couverture_chapitre_url')
-    db_insert_chapitre(manga_id, numero, titre, couverture_chapitre_url)
+    
+    if not manga_id:
+        return "Erreur : Aucun manga sélectionné", 400
+        
+    # Calcul automatique du numéro de chapitre suivant (+1)
+    dernier_numero = db_get_max_chapitre_numero(manga_id)
+    prochain_numero = dernier_numero + 1
+    
+    db_insert_chapitre(manga_id, prochain_numero, titre, couverture_chapitre_url)
     return redirect('/admin')
 
 def ajouter_cases_chapitre():
