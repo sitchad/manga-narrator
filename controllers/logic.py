@@ -48,6 +48,7 @@ def lire_page_manga(manga_id, num_chapitre, numero_page):
     if not page_actuelle:
         cursor.close()
         conn.close()
+        # Correction ici pour envoyer les bonnes variables à la fin du chapitre
         return render_template("fin_chapitre.html", manga_id=manga_id, num_chapitre=num_chapitre)
 
     cursor.execute("""
@@ -124,11 +125,14 @@ def voter_pour_manga():
                            (manga_id, ip_client, note_client))
 
         cursor.execute("SELECT AVG(valeur_note) FROM votes WHERE manga_id = %s;", (manga_id,))
-        nouvelle_moyenne = round(cursor.fetchone()[0], 1)
+        moyenne_brute = cursor.fetchone()[0]
+        nouvelle_moyenne = round(moyenne_brute, 1) if moyenne_brute else 0.0
 
-        cursor.execute("UPDATE mangas SET note = %s WHERE id = %s;", (nouenne_moyenne, manga_id))
+        # Correction de la variable ici (nouvelle_moyenne au lieu de nouenne_moyenne)
+        cursor.execute("UPDATE mangas SET note = %s WHERE id = %s;", (nouvelle_moyenne, manga_id))
         conn.commit()
     except Exception as e:
+        print(f"Erreur vote : {e}")
         conn.rollback()
     finally:
         cursor.close()
