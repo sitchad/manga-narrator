@@ -46,27 +46,71 @@
         </div>
     </div>
 
-    <script>
-        const clickZone = document.getElementById('manga-click-zone');
-        const actionBtn = document.getElementById('action-btn');
-        
-        // Cible de redirection calculée par le serveur de manière fluide
-        const nextUrl = "/manga/{{ manga_id }}/{{ chapitre_id }}/{{ numero_page + 1 }}";
+<script>
+        let parole = null;
 
-        function avancerNarration() {
-            // C'est le JavaScript qui intercepte le clic et envoie vers la page suivante
-            window.location.href = nextUrl;
+        function lancerNarration() {
+            // On stoppe tout son en cours pour éviter les chevauchements
+            window.speechSynthesis.cancel();
+
+            // 1. On prend le vrai texte propre affiché à l'écran
+            var texteOriginal = document.getElementById('texteNarration').innerText;
+            var textePourLaVoix = texteOriginal;
+
+            // 2. 🛠️ LE DICTIONNAIRE PHONÉTIQUE (Tu peux ajouter des mots ici)
+            var corrections = {
+                "Dawn": "Dône",
+                "Romance": "Romane-ce",
+                "One Piece": "Ouanne Pîce",
+                "Luffy": "Loufi",                                                                                                     "Shanks": "Chankse",
+                "Zoro": "Zoro"
+            };
+                                                                                                                                  // Remplacement automatique des mots anglais par leur prononciation française
+            for (var motAnglais in corrections) {                                                                                     var expressionReguliere = new RegExp(motAnglais, "gi");
+                textePourLaVoix = textePourLaVoix.replace(expressionReguliere, corrections[motAnglais]);
+            }
+
+            // 3. On crée l'objet de parole avec le texte corrigé
+            parole = new SpeechSynthesisUtterance(textePourLaVoix);
+            parole.lang = 'fr-FR';
+            parole.rate = 0.95; // Vitesse légèrement ralentie pour un effet plus cinéma
+            parole.pitch = 1.0;
+
+            // Sélection de la meilleure voix disponible (Google / Natural)
+            var voixDisponibles = window.speechSynthesis.getVoices();
+            let voixTrouvee = voixDisponibles.find(v => v.lang.includes('fr') && (v.name.includes('Google') || v.name>
+
+            if (!voixTrouvee) {
+                voixTrouvee = voixDisponibles.find(v => v.lang.includes('fr'));
+            }
+
+            if (voixTrouvee) {
+                parole.voice = voixTrouvee;
+            }
+
+            // Enchaînement automatique des cases à la fin de la phrase
+            parole.onend = function(event) {
+                setTimeout(function() {
+                    window.location.href = "/manga/{{ manga_id }}/chapitre/{{ num_chapitre }}/case/{{ num_case + 1 }}>
+                }, 800); // Petite pause dramatique de 0.8s
+            };                                                                                                        
+            // On lance la voix
+            window.speechSynthesis.speak(parole);
         }
 
-        // Le clic sur l'image ou sur le bouton déclenche le script JS de navigation
-        clickZone.addEventListener('click', avancerNarration);
-        actionBtn.addEventListener('click', avancerNarration);
-    </script>
+        // Lancement automatique au chargement
+        window.onload = function() {
+            if (window.speechSynthesis.onvoiceschanged !== undefined) {
+                window.speechSynthesis.onvoiceschanged = lancerNarration;
+            }
+            setTimeout(lancerNarration, 600);
+        };
 
-    <script type="text/javascript">
-        aclib.runAutoTag({
-            zoneId: '3acdcanlnw',
-        });
+        // Clic de sécurité sur mobile pour activer l'audio
+        document.body.addEventListener('click', function() {
+            lancerNarration();
+        }, { once: true });
     </script>
+   
 </body>
 </html>
