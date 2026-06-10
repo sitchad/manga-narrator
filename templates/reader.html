@@ -15,14 +15,14 @@
 
         <div style="background: rgba(0, 0, 0, 0.4); padding: 15px; border-radius: 6px; border-left: 4px solid #ff4757; margin-bottom: 20px; text-align: left;">
             <p id="texteNarration" style="font-size: 1.2rem; margin: 0; font-style: italic; color: #e4e4e7; line-height: 1.5;">
-                {{ texte }}
+                {{ narration }}
             </p>
         </div>
         
         <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
             <a href="/" style="color: #a1a1aa; text-decoration: none; font-size: 0.9rem;">🏠 Catalogue</a>
             <button onclick="lancerNarration()" style="background: #27272a; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold;">🎙️ Relancer la voix</button>
-            <a href="/manga/{{ manga_id }}/chapitre/{{ num_chapitre }}/case/{{ num_case + 1 }}" style="background: #ff4757; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+            <a href="/manga/{{ manga_id }}/{{ chapitre_id }}/{{ numero_page + 1 }}" style="background: #ff4757; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold;">
                 Passer ➡️
             </a>
         </div>
@@ -32,14 +32,11 @@
         let parole = null;
 
         function lancerNarration() {
-            // On stoppe tout son en cours pour éviter les chevauchements
             window.speechSynthesis.cancel();
 
-            // 1. On prend le vrai texte propre affiché à l'écran
             var texteOriginal = document.getElementById('texteNarration').innerText;
             var textePourLaVoix = texteOriginal;
 
-            // 2. 🛠️ LE DICTIONNAIRE PHONÉTIQUE (Tu peux ajouter des mots ici)
             var corrections = {
                 "Dawn": "Dône",
                 "Romance": "Romane-ce",
@@ -49,19 +46,16 @@
                 "Zoro": "Zoro"
             };
 
-            // Remplacement automatique des mots anglais par leur prononciation française
             for (var motAnglais in corrections) {
                 var expressionReguliere = new RegExp(motAnglais, "gi"); 
                 textePourLaVoix = textePourLaVoix.replace(expressionReguliere, corrections[motAnglais]);
             }
 
-            // 3. On crée l'objet de parole avec le texte corrigé
             parole = new SpeechSynthesisUtterance(textePourLaVoix);
             parole.lang = 'fr-FR'; 
-            parole.rate = 0.95; // Vitesse légèrement ralentie pour un effet plus cinéma
+            parole.rate = 0.95;
             parole.pitch = 1.0;   
 
-            // Sélection de la meilleure voix disponible (Google / Natural)
             var voixDisponibles = window.speechSynthesis.getVoices();
             let voixTrouvee = voixDisponibles.find(v => v.lang.includes('fr') && (v.name.includes('Google') || v.name.includes('Natural')));
             
@@ -73,18 +67,15 @@
                 parole.voice = voixTrouvee;
             }
 
-            // Enchaînement automatique des cases à la fin de la phrase
             parole.onend = function(event) {
                 setTimeout(function() {
-                    window.location.href = "/manga/{{ manga_id }}/chapitre/{{ num_chapitre }}/case/{{ num_case + 1 }}";
-                }, 800); // Petite pause dramatique de 0.8s
+                    window.location.href = "/manga/{{ manga_id }}/{{ chapitre_id }}/{{ numero_page + 1 }}";
+                }, 800);
             };
 
-            // On lance la voix
             window.speechSynthesis.speak(parole);
         }
 
-        // Lancement automatique au chargement
         window.onload = function() {
             if (window.speechSynthesis.onvoiceschanged !== undefined) {
                 window.speechSynthesis.onvoiceschanged = lancerNarration;
@@ -92,7 +83,6 @@
             setTimeout(lancerNarration, 600);
         };
         
-        // Clic de sécurité sur mobile pour activer l'audio
         document.body.addEventListener('click', function() {
             lancerNarration();
         }, { once: true });
