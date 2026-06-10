@@ -3,50 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chapitre {{ num_chapitre }} - Page {{ numero_page }}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .unselectable {
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
-            user-select: none;
-        }
-    </style>
+    <title>MangaCine - Lecture Premium</title>
 </head>
-<body class="bg-black text-white min-h-screen flex flex-col justify-between unselectable">
-    
-    <div class="w-full bg-zinc-950/80 backdrop-blur border-b border-zinc-900 p-4 flex justify-between items-center z-10">
-        <a href="/manga/{{ manga_id }}" class="text-xs bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded text-zinc-400 hover:text-white transition">
-            ✕ Quitter
-        </a>
-        <span class="text-xs font-bold uppercase tracking-widest text-zinc-500">
-            Chapitre {{ num_chapitre }} — <span class="text-white">Page {{ numero_page }}</span>
-        </span>
-        <div class="w-16"></div>
-    </div>
+<body style="background: #060607; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 20px; display: flex; flex-direction: column; justify-content: center; min-height: 100vh; box-sizing: border-box;">
 
-    <div class="flex-1 flex flex-col items-center justify-center p-2 max-w-2xl mx-auto w-full relative">
-        <div id="manga-click-zone" class="w-full block group relative cursor-pointer">
-            <img src="{{ image_url }}" alt="Manga case" class="w-full h-auto max-h-[70vh] object-contain mx-auto rounded-lg shadow-2xl transition duration-300 group-hover:opacity-95">
+    <div style="max-width: 600px; margin: 0 auto; background: #111113; padding: 25px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); border: 1px solid #222225;">
+        
+        <div style="overflow: hidden; border-radius: 8px; margin-bottom: 15px; background: #000; max-height: 60vh; display: flex; align-items: center; justify-content: center;">
+            <img src="{{ image_url }}" style="max-width: 100%; max-height: 60vh; object-fit: contain;">
         </div>
-    </div>
 
-    <div class="w-full bg-zinc-950 border-t border-zinc-900 p-5 pb-8">
-        <div class="max-w-xl mx-auto space-y-4">
-            <p id="narration-text" class="text-sm md:text-base text-zinc-200 text-center font-medium leading-relaxed tracking-wide italic px-4">
-                {% if narration %}" {{ narration }} "{% else %}(Laissez-vous guider par le visuel){% endif %}
+        <div style="background: rgba(0, 0, 0, 0.4); padding: 15px; border-radius: 6px; border-left: 4px solid #ff4757; margin-bottom: 20px; text-align: left;">
+            <p id="texteNarration" style="font-size: 1.2rem; margin: 0; font-style: italic; color: #e4e4e7; line-height: 1.5;">
+                {{ texte }}
             </p>
-            
-            <div class="flex justify-center">
-                <button id="action-btn" class="bg-white text-black font-black text-xs uppercase px-6 py-2.5 rounded-full tracking-wider hover:bg-zinc-200 transition">
-                    {% if a_un_suivant %}Continuer →{% else %}Terminer le Chapitre{% endif %}
-                </button>
-            </div>
+        </div>
+        
+        <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+            <a href="/" style="color: #a1a1aa; text-decoration: none; font-size: 0.9rem;">🏠 Catalogue</a>
+            <button onclick="lancerNarration()" style="background: #27272a; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold;">🎙️ Relancer la voix</button>
+            <a href="/manga/{{ manga_id }}/chapitre/{{ num_chapitre }}/case/{{ num_case + 1 }}" style="background: #ff4757; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                Passer ➡️
+            </a>
         </div>
     </div>
 
-<script>
+    <script>
         let parole = null;
 
         function lancerNarration() {
@@ -62,24 +44,27 @@
                 "Dawn": "Dône",
                 "Romance": "Romane-ce",
                 "One Piece": "Ouanne Pîce",
-                "Luffy": "Loufi",                                                                                                     "Shanks": "Chankse",
+                "Luffy": "Loufi",
+                "Shanks": "Chankse",
                 "Zoro": "Zoro"
             };
-                                                                                                                                  // Remplacement automatique des mots anglais par leur prononciation française
-            for (var motAnglais in corrections) {                                                                                     var expressionReguliere = new RegExp(motAnglais, "gi");
+
+            // Remplacement automatique des mots anglais par leur prononciation française
+            for (var motAnglais in corrections) {
+                var expressionReguliere = new RegExp(motAnglais, "gi"); 
                 textePourLaVoix = textePourLaVoix.replace(expressionReguliere, corrections[motAnglais]);
             }
 
             // 3. On crée l'objet de parole avec le texte corrigé
             parole = new SpeechSynthesisUtterance(textePourLaVoix);
-            parole.lang = 'fr-FR';
+            parole.lang = 'fr-FR'; 
             parole.rate = 0.95; // Vitesse légèrement ralentie pour un effet plus cinéma
-            parole.pitch = 1.0;
+            parole.pitch = 1.0;   
 
             // Sélection de la meilleure voix disponible (Google / Natural)
             var voixDisponibles = window.speechSynthesis.getVoices();
-            let voixTrouvee = voixDisponibles.find(v => v.lang.includes('fr') && (v.name.includes('Google') || v.name>
-
+            let voixTrouvee = voixDisponibles.find(v => v.lang.includes('fr') && (v.name.includes('Google') || v.name.includes('Natural')));
+            
             if (!voixTrouvee) {
                 voixTrouvee = voixDisponibles.find(v => v.lang.includes('fr'));
             }
@@ -91,9 +76,10 @@
             // Enchaînement automatique des cases à la fin de la phrase
             parole.onend = function(event) {
                 setTimeout(function() {
-                    window.location.href = "/manga/{{ manga_id }}/chapitre/{{ num_chapitre }}/case/{{ num_case + 1 }}>
+                    window.location.href = "/manga/{{ manga_id }}/chapitre/{{ num_chapitre }}/case/{{ num_case + 1 }}";
                 }, 800); // Petite pause dramatique de 0.8s
-            };                                                                                                        
+            };
+
             // On lance la voix
             window.speechSynthesis.speak(parole);
         }
@@ -105,12 +91,11 @@
             }
             setTimeout(lancerNarration, 600);
         };
-
+        
         // Clic de sécurité sur mobile pour activer l'audio
         document.body.addEventListener('click', function() {
             lancerNarration();
         }, { once: true });
     </script>
-   
 </body>
 </html>
